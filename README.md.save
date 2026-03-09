@@ -14,66 +14,57 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-🛒 POS System
-A full-featured Point of Sale system built with React + Node.js.
-📋 Build Roadmap
+```
+🛒 POS SYSTEM — TO DO LIST
+
 ⚙️ Phase 1 — Project Setup & Planning
-[ ] Choose Your Tech Stack — React (frontend), Node.js (backend), MySQL (database)
-[ ] Set Up GitHub Repository — Initialize repo, set main branch, save PAT token
-[ ] Initialize Your Project — Set up Vite + React, folder structure, install dependencies
-[ ] Design the Database Schema — Plan tables: Products, Categories, Sales, SaleItems, Users
-[ ] Set Up the Backend Server — Node.js + Express, connect to database, test /api/health endpoint
+✔️ Choose Your Tech Stack
+✔️ Set Up GitHub Repository
+✔️ Initialize Your Project
+✔️ Design the Database Schema
+✔️ Set Up the Backend Server
+
 🔐 Phase 2 — Authentication System
-[ ] Build Login Page UI — Clean login form with username/password and validation
-[ ] Set Up User Roles — Admin (full access) and Cashier (sale screen only)
-[ ] Implement JWT Authentication — Generate tokens on login, protect all API routes
-[ ] Build Role-Based Route Protection — PrivateRoute component, redirect unauthorized users
+✔️ Build Login Page UI
+✔️ Set Up User Roles
+✔️ Implement JWT Authentication
+✔️ Build Role-Based Route Protection
+
 📦 Phase 3 — Product & Inventory Management
-[ ] Build Product List Page — Table/grid with search bar and category filter
-[ ] Add Product Form — Fields: Name, Price, Category, Stock, Barcode, Image
-[ ] Edit & Delete Products — Pre-fill form on edit, confirmation dialog on delete
-[ ] Stock/Inventory Tracking — Auto-deduct stock on sale, low stock warnings
-[ ] Category Management — Add, rename, delete categories from admin panel
-🛒 Phase 4 — Point of Sale Screen (Core Feature)
-[ ] Build the POS Layout — Split screen: product grid (left) + cart/order (right)
-[ ] Product Search & Selection — Search by name or barcode, click to add to cart
-[ ] Cart / Order Management — Quantities with +/- buttons, line totals, grand total
-[ ] Payment Processing — Cash payment modal, calculate change, record sale in DB
-[ ] Receipt Generation — Itemized receipt with print button
-[ ] Barcode Scanner Support — Camera or USB barcode scanner integration
+✔️ Build Product List Page
+✔️ Add Product Form
+✔️ Edit & Delete Products
+✔️ Stock/Inventory Tracking
+✔️ Category Management
+
+🛒 Phase 4 — Point of Sale Screen
+✔️ Build the POS Layout
+✔️ Payment Processing
+[ ] Product Search & Filter by Category
+[ ] Cart +/- Quantity Buttons
+[ ] Receipt Generation
+[ ] Barcode Scanner Support
+
 📊 Phase 5 — Reports & Analytics
-[ ] Daily Sales Report — Total transactions, revenue, most sold products
-[ ] Sales History Table — All past transactions with date range filter
-[ ] Revenue Chart — Line/bar chart of daily/weekly/monthly revenue
-[ ] Top Selling Products — Ranked list of best sellers within a date range
-[ ] Export Reports — Download sales data as CSV or PDF
+✔️ Sales History Table
+[ ] Daily Sales Report
+[ ] Revenue Chart
+[ ] Top Selling Products
+[ ] Export Reports (CSV/PDF)
+
 ✨ Phase 6 — Settings & Final Polish
-[ ] Store Settings Page — Store name, logo, currency, tax rate, receipt footer
-[ ] User Management — Add/deactivate cashier accounts, view cashier activity
-[ ] Responsive Design — Optimized for tablet and desktop touchscreens
-[ ] Error Handling & Validation — Out-of-stock guards, network errors, user-friendly messages
-[ ] Deploy the Application — Backend on Railway/Render, Frontend on Vercel, DB on PlanetScale
-🛠️ Tech Stack
-Layer
-Technology
-Frontend
-React + Vite
-Backend
-Node.js + Express
-Database
-MySQL
-Auth
-JWT
-Deployment
-Vercel + Railway
-🚀 Getting Started
-# Clone the repo
-git clone https://github.com/222loresho/pos-system.git
+[ ] Store Settings Page
+[ ] User Management (add/deactivate cashiers)
+[ ] Responsive Design
+[ ] Error Handling & Validation
+[ ] Deploy (Vercel + Railway + Supabase)
 
-# Install dependencies
-cd pos-system
-npm install
-
-# Start development server
-npm run dev
-Built with ❤️ — one commit at a time.
+🔗 Phase 7 — QR Menu Integration
+[ ] Add JavaScript fetch to QR Menu HTML
+[ ] Pull live products from POS database
+[ ] Add Orders table to Supabase
+[ ] QR Menu submits orders to POS
+[ ] POS receives and processes orders
+[ ] Stock auto-deducts on order completion
+[ ] Test full flow: Order → POS → Payment → Stock update
+```
