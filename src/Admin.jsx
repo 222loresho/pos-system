@@ -7,30 +7,47 @@ export default function Admin({ user, onLogout }) {
   const [categories, setCategories] = useState([]);
   const [sales, setSales] = useState([]);
   const [message, setMessage] = useState('');
+  const [editProduct, setEditProduct] = useState(null);
 
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category_id: '' });
   const [newCategory, setNewCategory] = useState('');
 
+  const fetchProducts = () => api.get('/products/').then(res => setProducts(res.data));
+  const fetchCategories = () => api.get('/categories/').then(res => setCategories(res.data));
+  const fetchSales = () => api.get('/sales/').then(res => setSales(res.data));
+
   useEffect(() => {
-    api.get('/products/').then(res => setProducts(res.data));
-    api.get('/categories/').then(res => setCategories(res.data));
-    api.get('/sales/').then(res => setSales(res.data));
+    fetchProducts();
+    fetchCategories();
+    fetchSales();
   }, []);
 
   const addProduct = async () => {
     if (!newProduct.name || !newProduct.price) return setMessage('Name and price required!');
     await api.post('/products/', newProduct);
-    const res = await api.get('/products/');
-    setProducts(res.data);
+    fetchProducts();
     setNewProduct({ name: '', price: '', stock: '', category_id: '' });
     setMessage('✅ Product added!');
+  };
+
+  const saveEdit = async () => {
+    await api.put(`/products/${editProduct.id}`, editProduct);
+    fetchProducts();
+    setEditProduct(null);
+    setMessage('✅ Product updated!');
+  };
+
+  const deleteProduct = async (id) => {
+    if (!window.confirm('Delete this product?')) return;
+    await api.delete(`/products/${id}`);
+    fetchProducts();
+    setMessage('✅ Product deleted!');
   };
 
   const addCategory = async () => {
     if (!newCategory) return setMessage('Category name required!');
     await api.post('/categories/', { name: newCategory });
-    const res = await api.get('/categories/');
-    setCategories(res.data);
+    fetchCategories();
     setNewCategory('');
     setMessage('✅ Category added!');
   };
@@ -44,6 +61,15 @@ export default function Admin({ user, onLogout }) {
     cursor: 'pointer',
     marginRight: '8px'
   });
+
+  const inputStyle = {
+    width: '100%',
+    padding: '8px',
+    borderRadius: '6px',
+    border: 'none',
+    marginBottom: '8px',
+    boxSizing: 'border-box'
+  };
 
   return (
     <div style={{ background: '#1a1a2e', minHeight: '100vh', color: 'white', padding: '16px' }}>
@@ -65,25 +91,46 @@ export default function Admin({ user, onLogout }) {
 
       {tab === 'products' && (
         <div>
+          {/* Add Product Form */}
           <div style={{ background: '#16213e', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
             <h3 style={{ color: '#e94560', marginTop: 0 }}>Add Product</h3>
-            <input placeholder="Name" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: 'none', marginBottom: '8px', boxSizing: 'border-box' }} />
-            <input placeholder="Price" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: 'none', marginBottom: '8px', boxSizing: 'border-box' }} />
-            <input placeholder="Stock" type="number" value={newProduct.stock} onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: 'none', marginBottom: '8px', boxSizing: 'border-box' }} />
-            <select value={newProduct.category_id} onChange={e => setNewProduct({ ...newProduct, category_id: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: 'none', marginBottom: '8px', boxSizing: 'border-box' }}>
+            <input placeholder="Name" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} style={inputStyle} />
+            <input placeholder="Price" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} style={inputStyle} />
+            <input placeholder="Stock" type="number" value={newProduct.stock} onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })} style={inputStyle} />
+            <select value={newProduct.category_id} onChange={e => setNewProduct({ ...newProduct, category_id: e.target.value })} style={inputStyle}>
               <option value="">No Category</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <button onClick={addProduct} style={{ width: '100%', padding: '10px', background: '#e94560', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Add Product</button>
           </div>
+
+          {/* Edit Modal */}
+          {editProduct && (
+            <div style={{ background: '#0f3460', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e94560' }}>
+              <h3 style={{ color: '#e94560', marginTop: 0 }}>✏️ Edit Product</h3>
+              <input placeholder="Name" value={editProduct.name} onChange={e => setEditProduct({ ...editProduct, name: e.target.value })} style={inputStyle} />
+              <input placeholder="Price" type="number" value={editProduct.price} onChange={e => setEditProduct({ ...editProduct, price: e.target.value })} style={inputStyle} />
+              <input placeholder="Stock" type="number" value={editProduct.stock} onChange={e => setEditProduct({ ...editProduct, stock: e.target.value })} style={inputStyle} />
+              <select value={editProduct.category_id || ''} onChange={e => setEditProduct({ ...editProduct, category_id: e.target.value })} style={inputStyle}>
+                <option value="">No Category</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={saveEdit} style={{ flex: 1, padding: '10px', background: '#4caf50', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Save</button>
+                <button onClick={() => setEditProduct(null)} style={{ flex: 1, padding: '10px', background: '#888', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Products List */}
           {products.map(p => (
-            <div key={p.id} style={{ background: '#16213e', padding: '12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+            <div key={p.id} style={{ background: '#16213e', padding: '12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>{p.name}</span>
-              <span style={{ color: '#e94560' }}>KSh {p.price} | Stock: {p.stock}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#e94560' }}>KSh {p.price} | Stock: {p.stock}</span>
+                <button onClick={() => setEditProduct(p)} style={{ padding: '4px 10px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✏️</button>
+                <button onClick={() => deleteProduct(p.id)} style={{ padding: '4px 10px', background: '#e94560', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>🗑️</button>
+              </div>
             </div>
           ))}
         </div>
@@ -93,8 +140,7 @@ export default function Admin({ user, onLogout }) {
         <div>
           <div style={{ background: '#16213e', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
             <h3 style={{ color: '#e94560', marginTop: 0 }}>Add Category</h3>
-            <input placeholder="Category name" value={newCategory} onChange={e => setNewCategory(e.target.value)}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: 'none', marginBottom: '8px', boxSizing: 'border-box' }} />
+            <input placeholder="Category name" value={newCategory} onChange={e => setNewCategory(e.target.value)} style={inputStyle} />
             <button onClick={addCategory} style={{ width: '100%', padding: '10px', background: '#e94560', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Add Category</button>
           </div>
           {categories.map(c => (
