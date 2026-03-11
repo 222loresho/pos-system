@@ -12,7 +12,7 @@ export default function ClearedBills() {
   const printReceipt = (o) => {
     const win = window.open('', '_blank');
     const itemRows = o.items.map(i =>
-      `<div class="row"><span>${i.product_name} x${i.quantity}</span><span>KSh ${i.subtotal}</span></div>`
+      `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px"><span>${i.product_name} x${i.quantity}</span><span>KSh ${i.subtotal}</span></div>`
     ).join('');
     win.document.write(`
       <html><head><title>Receipt ${o.order_number}</title>
@@ -20,75 +20,65 @@ export default function ClearedBills() {
         body { font-family: monospace; width: 300px; margin: 0 auto; padding: 16px; font-size: 13px; }
         h2 { text-align: center; margin: 0; font-size: 16px; }
         p { text-align: center; margin: 2px 0; font-size: 12px; }
-        .left { text-align: left !important; }
+        .meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
         .divider { border-top: 1px dashed #000; margin: 8px 0; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .bold { font-weight: bold; }
         @media print { button { display: none; } }
       </style></head><body>
       <h2>Triple Two Loresho</h2>
       <p>📍 Loresho, Nairobi</p>
       <div class="divider"></div>
-      <p class="left">Order: ${o.order_number}</p>
-      <p class="left">🪑 ${o.table_name}</p>
-      <p class="left">👤 Waiter: ${o.waiter_name}</p>
-      <p class="left">📅 ${new Date(o.created_at).toLocaleString()}</p>
+      <div class="meta"><span>🔖 ${o.order_number}</span><span>🪑 ${o.table_name}</span></div>
+      <div class="meta"><span>👤 ${o.waiter_name}</span><span>📅 ${new Date(o.created_at).toLocaleString()}</span></div>
       <div class="divider"></div>
       ${itemRows}
       <div class="divider"></div>
-      <div class="row bold"><span>TOTAL</span><span>KSh ${o.total}</span></div>
+      <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:14px"><span>TOTAL</span><span>KSh ${o.total}</span></div>
       <div class="divider"></div>
       <p>✅ PAID</p>
       <button onclick="window.print()" style="width:100%;padding:8px;margin-top:12px;cursor:pointer">🖨️ Print</button>
       </body></html>
     `);
-    win.document.close();
-    win.focus();
-    win.print();
+    win.document.close(); win.focus(); win.print();
   };
 
   return (
-    <div style={{ background:'#1a1a2e', minHeight:'100vh', color:'white', padding:'16px' }}>
-      <h2 style={{ color:'#e94560', marginTop:0 }}>✅ Cleared Bills</h2>
-      {orders.length === 0 && <p style={{ color:'#888' }}>No completed orders yet.</p>}
-      <div style={{ display:'grid', gap:'12px' }}>
-        {orders.map(o => (
-          <div key={o.id} style={{ background:'#16213e', borderRadius:'10px', padding:'14px', border:'1px solid #0f3460' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'8px' }}>
-              <div>
-                <span style={{ color:'#e94560', fontWeight:'bold', fontSize:'16px' }}>{o.order_number}</span>
-                <span style={{ marginLeft:'10px', color:'#4caf50', fontSize:'13px' }}>✅ Paid</span>
-              </div>
-              <div style={{ fontSize:'13px', color:'#888' }}>{new Date(o.created_at).toLocaleString()}</div>
+    <div>
+      <div className="section-title">✅ Cleared Bills</div>
+      {orders.length === 0 && <p className="text-muted">No completed orders yet.</p>}
+      {orders.map(o => (
+        <div key={o.id} className="cleared-card">
+          <div className="cleared-header">
+            <div className="flex gap-8" style={{ alignItems:'center' }}>
+              <span className="text-accent text-bold">{o.order_number}</span>
+              <span className="text-green text-sm">✅ Paid</span>
             </div>
-            <div style={{ marginTop:'8px', fontSize:'14px', display:'flex', gap:'16px', flexWrap:'wrap' }}>
-              <span>🪑 {o.table_name}</span>
-              <span>👤 {o.waiter_name}</span>
-              <span style={{ color:'#e94560', fontWeight:'bold' }}>KSh {o.total}</span>
-            </div>
-            <div style={{ marginTop:'8px', display:'flex', gap:'8px' }}>
-              <button onClick={() => setSelected(selected?.id === o.id ? null : o)}
-                style={{ padding:'6px 12px', background:'#0f3460', color:'white', border:'1px solid #e94560', borderRadius:'6px', cursor:'pointer', fontSize:'12px' }}>
-                {selected?.id === o.id ? '▲ Hide' : '▼ Items'}
-              </button>
-              <button onClick={() => printReceipt(o)}
-                style={{ padding:'6px 12px', background:'#e94560', color:'white', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'12px' }}>
-                🖨️ Reprint
-              </button>
-            </div>
-            {selected?.id === o.id && (
-              <div style={{ marginTop:'10px', borderTop:'1px solid #0f3460', paddingTop:'10px' }}>
-                {o.items.map((i, idx) => (
-                  <div key={idx} style={{ display:'flex', justifyContent:'space-between', fontSize:'13px', marginBottom:'4px' }}>
-                    <span>{i.product_name} x{i.quantity}</span>
-                    <span>KSh {i.subtotal}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <span className="text-muted text-sm">{new Date(o.created_at).toLocaleString()}</span>
           </div>
-        ))}
-      </div>
+          <div className="cleared-meta">
+            <span>🪑 {o.table_name}</span>
+            <span>👤 {o.waiter_name}</span>
+            <span className="text-accent text-bold">KSh {o.total}</span>
+          </div>
+          <div className="cleared-actions">
+            <button className="btn btn-sm" style={{ background:'var(--card)', color:'white', border:'1px solid var(--accent)' }}
+              onClick={() => setSelected(selected?.id === o.id ? null : o)}>
+              {selected?.id === o.id ? '▲ Hide' : '▼ Items'}
+            </button>
+            <button className="btn btn-sm btn-primary" onClick={() => printReceipt(o)}>🖨️ Reprint</button>
+          </div>
+          {selected?.id === o.id && (
+            <div style={{ marginTop:'10px', borderTop:'1px solid var(--card)', paddingTop:'10px' }}>
+              {o.items.map((i, idx) => (
+                <div key={idx} className="flex-between text-sm mb-8">
+                  <span>{i.product_name} x{i.quantity}</span>
+                  <span>KSh {i.subtotal}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

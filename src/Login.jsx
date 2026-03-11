@@ -2,44 +2,38 @@ import { useState } from 'react';
 import api from './api';
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!form.username || !form.password) return setError('Please fill in all fields');
+    setLoading(true);
     try {
-      const res = await api.post('/auth/login', { username, password });
+      const res = await api.post('/auth/login', form);
       localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
       onLogin(res.data.user);
-    } catch (err) {
+    } catch {
       setError('Invalid username or password');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', background:'#1a1a2e' }}>
-      <div style={{ background:'#16213e', padding:'40px', borderRadius:'12px', width:'300px' }}>
-        <h2 style={{ color:'#e94560', textAlign:'center', marginBottom:'24px' }}>POS Login</h2>
-        {error && <p style={{ color:'red', textAlign:'center' }}>{error}</p>}
-        <input
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          style={{ width:'100%', padding:'10px', marginBottom:'12px', borderRadius:'6px', border:'none', boxSizing:'border-box' }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{ width:'100%', padding:'10px', marginBottom:'16px', borderRadius:'6px', border:'none', boxSizing:'border-box' }}
-        />
-        <button
-          onClick={handleLogin}
-          style={{ width:'100%', padding:'12px', background:'#e94560', color:'white', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'16px' }}
-        >
-          Login
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-title">🛒 Triple Two</div>
+        <div className="login-sub">Loresho POS System</div>
+        {error && <div className="message message-error">{error}</div>}
+        <input className="input" placeholder="Username" value={form.username}
+          onChange={e => setForm({ ...form, username: e.target.value })}
+          onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+        <input className="input" type="password" placeholder="Password" value={form.password}
+          onChange={e => setForm({ ...form, password: e.target.value })}
+          onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+        <button className="btn btn-primary" onClick={handleLogin} disabled={loading}>
+          {loading ? 'Logging in...' : '🔐 Login'}
         </button>
       </div>
     </div>

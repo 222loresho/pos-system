@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import api from './api';
 import ClearedBills from './ClearedBills';
 
-export default function Admin({ user, onLogout }) {
+export default function Admin({ user, onLogout, onSwitchToPOS }) {
   const [tab, setTab] = useState('products');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [sales, setSales] = useState([]);
   const [message, setMessage] = useState('');
   const [editProduct, setEditProduct] = useState(null);
-
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category_id: '' });
   const [newCategory, setNewCategory] = useState('');
 
@@ -17,15 +16,11 @@ export default function Admin({ user, onLogout }) {
   const fetchCategories = () => api.get('/categories/').then(res => setCategories(res.data));
   const fetchSales = () => api.get('/sales/').then(res => setSales(res.data));
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-    fetchSales();
-  }, []);
+  useEffect(() => { fetchProducts(); fetchCategories(); fetchSales(); }, []);
 
   const addProduct = async () => {
-    if (!newProduct.name || !newProduct.price) return setMessage('Name and price required!');
-    await api.post('/products/', newProduct);
+    if (!newProduct.name || !newProduct.price) return setMessage('❌ Name and price required!');
+    await api.post('/products/', { ...newProduct, category_id: newProduct.category_id || null });
     fetchProducts();
     setNewProduct({ name: '', price: '', stock: '', category_id: '' });
     setMessage('✅ Product added!');
@@ -33,103 +28,89 @@ export default function Admin({ user, onLogout }) {
 
   const saveEdit = async () => {
     await api.put(`/products/${editProduct.id}`, editProduct);
-    fetchProducts();
-    setEditProduct(null);
-    setMessage('✅ Product updated!');
+    fetchProducts(); setEditProduct(null); setMessage('✅ Product updated!');
   };
 
   const deleteProduct = async (id) => {
     if (!window.confirm('Delete this product?')) return;
-    await api.delete(`/products/${id}`);
-    fetchProducts();
-    setMessage('✅ Product deleted!');
+    await api.delete(`/products/${id}`); fetchProducts(); setMessage('✅ Deleted!');
   };
 
   const addCategory = async () => {
-    if (!newCategory) return setMessage('Category name required!');
+    if (!newCategory) return setMessage('❌ Category name required!');
     await api.post('/categories/', { name: newCategory });
-    fetchCategories();
-    setNewCategory('');
-    setMessage('✅ Category added!');
+    fetchCategories(); setNewCategory(''); setMessage('✅ Category added!');
   };
 
-  const btnStyle = (active) => ({
-    padding: '10px 20px',
-    background: active ? '#e94560' : '#16213e',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    marginRight: '8px',
-    marginBottom: '8px'
-  });
-
-  const inputStyle = {
-    width: '100%',
-    padding: '8px',
-    borderRadius: '6px',
-    border: 'none',
-    marginBottom: '8px',
-    boxSizing: 'border-box'
-  };
+  const tabs = [
+    { id: 'products', label: '📦 Products' },
+    { id: 'categories', label: '🏷️ Categories' },
+    { id: 'sales', label: '📊 Sales' },
+    { id: 'cleared', label: '✅ Cleared Bills' },
+  ];
 
   return (
-    <div style={{ background: '#1a1a2e', minHeight: '100vh', color: 'white', padding: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ color: '#e94560', margin: 0 }}>⚙️ Admin Panel</h2>
-        <div>
-          <span style={{ marginRight: '12px' }}>👤 {user.name}</span>
-          <button onClick={onLogout} style={{ padding: '6px 12px', background: '#e94560', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Logout</button>
+    <div className="page">
+      <div className="header">
+        <h2>⚙️ Admin Panel</h2>
+        <div className="header-right">
+          <span className="header-user">👤 {user.name}</span>
+          {onSwitchToPOS && (
+            <button className="btn btn-success btn-sm" onClick={onSwitchToPOS}>🛒 POS</button>
+          )}
+          <button className="btn btn-primary btn-sm" onClick={onLogout}>Logout</button>
         </div>
       </div>
 
-      <div style={{ marginBottom: '16px', flexWrap: 'wrap', display: 'flex' }}>
-        <button style={btnStyle(tab === 'products')} onClick={() => setTab('products')}>📦 Products</button>
-        <button style={btnStyle(tab === 'categories')} onClick={() => setTab('categories')}>🏷️ Categories</button>
-        <button style={btnStyle(tab === 'sales')} onClick={() => setTab('sales')}>📊 Sales</button>
-        <button style={btnStyle(tab === 'cleared')} onClick={() => setTab('cleared')}>✅ Cleared Bills</button>
+      <div className="tabs">
+        {tabs.map(t => (
+          <button key={t.id} className={`tab-btn ${tab === t.id ? 'active' : 'inactive'}`}
+            onClick={() => setTab(t.id)}>{t.label}</button>
+        ))}
       </div>
 
-      {message && <p style={{ color: '#4caf50' }}>{message}</p>}
+      {message && <div className={`message ${message.startsWith('❌') ? 'message-error' : 'message-success'}`}>{message}</div>}
 
       {tab === 'products' && (
         <div>
-          <div style={{ background: '#16213e', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
-            <h3 style={{ color: '#e94560', marginTop: 0 }}>Add Product</h3>
-            <input placeholder="Name" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} style={inputStyle} />
-            <input placeholder="Price" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} style={inputStyle} />
-            <input placeholder="Stock" type="number" value={newProduct.stock} onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })} style={inputStyle} />
-            <select value={newProduct.category_id} onChange={e => setNewProduct({ ...newProduct, category_id: e.target.value })} style={inputStyle}>
+          <div className="card">
+            <div className="section-title">Add Product</div>
+            <input className="input" placeholder="Name" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} />
+            <input className="input" placeholder="Price" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
+            <input className="input" placeholder="Stock" type="number" value={newProduct.stock} onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })} />
+            <select className="input" value={newProduct.category_id} onChange={e => setNewProduct({ ...newProduct, category_id: e.target.value })}>
               <option value="">No Category</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
-            <button onClick={addProduct} style={{ width: '100%', padding: '10px', background: '#e94560', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Add Product</button>
+            <button className="btn btn-primary" onClick={addProduct}>Add Product</button>
           </div>
 
           {editProduct && (
-            <div style={{ background: '#0f3460', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e94560' }}>
-              <h3 style={{ color: '#e94560', marginTop: 0 }}>✏️ Edit Product</h3>
-              <input placeholder="Name" value={editProduct.name} onChange={e => setEditProduct({ ...editProduct, name: e.target.value })} style={inputStyle} />
-              <input placeholder="Price" type="number" value={editProduct.price} onChange={e => setEditProduct({ ...editProduct, price: e.target.value })} style={inputStyle} />
-              <input placeholder="Stock" type="number" value={editProduct.stock} onChange={e => setEditProduct({ ...editProduct, stock: e.target.value })} style={inputStyle} />
-              <select value={editProduct.category_id || ''} onChange={e => setEditProduct({ ...editProduct, category_id: e.target.value })} style={inputStyle}>
+            <div className="card card-dark" style={{ border: '1px solid var(--accent)' }}>
+              <div className="section-title">✏️ Edit Product</div>
+              <input className="input" placeholder="Name" value={editProduct.name} onChange={e => setEditProduct({ ...editProduct, name: e.target.value })} />
+              <input className="input" placeholder="Price" type="number" value={editProduct.price} onChange={e => setEditProduct({ ...editProduct, price: e.target.value })} />
+              <input className="input" placeholder="Stock" type="number" value={editProduct.stock} onChange={e => setEditProduct({ ...editProduct, stock: e.target.value })} />
+              <select className="input" value={editProduct.category_id || ''} onChange={e => setEditProduct({ ...editProduct, category_id: e.target.value })}>
                 <option value="">No Category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={saveEdit} style={{ flex: 1, padding: '10px', background: '#4caf50', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Save</button>
-                <button onClick={() => setEditProduct(null)} style={{ flex: 1, padding: '10px', background: '#888', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+              <div className="modal-actions">
+                <button className="btn btn-success" onClick={saveEdit}>Save</button>
+                <button className="btn btn-muted" onClick={() => setEditProduct(null)}>Cancel</button>
               </div>
             </div>
           )}
 
           {products.map(p => (
-            <div key={p.id} style={{ background: '#16213e', padding: '12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>{p.name}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: '#e94560' }}>KSh {p.price} | Stock: {p.stock}</span>
-                <button onClick={() => setEditProduct(p)} style={{ padding: '4px 10px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✏️</button>
-                <button onClick={() => deleteProduct(p.id)} style={{ padding: '4px 10px', background: '#e94560', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>🗑️</button>
+            <div key={p.id} className="admin-item">
+              <div>
+                <div className="admin-item-info">{p.name}</div>
+                <div className="admin-item-sub">KSh {p.price} &nbsp;|&nbsp; Stock: {p.stock} &nbsp;|&nbsp; {categories.find(c => c.id === p.category_id)?.name || 'No category'}</div>
+              </div>
+              <div className="admin-item-actions">
+                <button className="btn btn-sm" style={{ background:'var(--card)', color:'white' }} onClick={() => setEditProduct(p)}>✏️</button>
+                <button className="btn btn-sm btn-primary" onClick={() => deleteProduct(p.id)}>🗑️</button>
               </div>
             </div>
           ))}
@@ -138,31 +119,29 @@ export default function Admin({ user, onLogout }) {
 
       {tab === 'categories' && (
         <div>
-          <div style={{ background: '#16213e', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
-            <h3 style={{ color: '#e94560', marginTop: 0 }}>Add Category</h3>
-            <input placeholder="Category name" value={newCategory} onChange={e => setNewCategory(e.target.value)} style={inputStyle} />
-            <button onClick={addCategory} style={{ width: '100%', padding: '10px', background: '#e94560', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Add Category</button>
+          <div className="card">
+            <div className="section-title">Add Category</div>
+            <input className="input" placeholder="Category name" value={newCategory} onChange={e => setNewCategory(e.target.value)} />
+            <button className="btn btn-primary" onClick={addCategory}>Add Category</button>
           </div>
           {categories.map(c => (
-            <div key={c.id} style={{ background: '#16213e', padding: '12px', borderRadius: '8px', marginBottom: '8px' }}>
-              {c.name}
-            </div>
+            <div key={c.id} className="card">{c.name}</div>
           ))}
         </div>
       )}
 
       {tab === 'sales' && (
         <div>
-          {sales.length === 0 && <p style={{ color: '#888' }}>No sales yet</p>}
+          {sales.length === 0 && <p className="text-muted">No sales yet</p>}
           {sales.map(s => (
-            <div key={s.id} style={{ background: '#16213e', padding: '12px', borderRadius: '8px', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>#{s.id} — {s.cashier_name}</span>
-                <span style={{ color: '#e94560' }}>KSh {s.total}</span>
+            <div key={s.id} className="admin-item">
+              <div>
+                <div className="admin-item-info">#{s.id} — {s.cashier_name}</div>
+                <div className="admin-item-sub">
+                  Paid: KSh {s.amount_paid} | Change: KSh {s.change_due} | {s.payment_method} | {new Date(s.created_at).toLocaleString()}
+                </div>
               </div>
-              <div style={{ fontSize: '12px', color: '#888' }}>
-                Paid: KSh {s.amount_paid} | Change: KSh {s.change_due} | {s.payment_method} | {new Date(s.created_at).toLocaleString()}
-              </div>
+              <div className="text-accent text-bold">KSh {s.total}</div>
             </div>
           ))}
         </div>
