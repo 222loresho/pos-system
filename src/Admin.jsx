@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from './api';
+import ClearedBills from './ClearedBills';
 
 export default function Admin({ user, onLogout }) {
   const [tab, setTab] = useState('products');
@@ -59,7 +60,8 @@ export default function Admin({ user, onLogout }) {
     border: 'none',
     borderRadius: '6px',
     cursor: 'pointer',
-    marginRight: '8px'
+    marginRight: '8px',
+    marginBottom: '8px'
   });
 
   const inputStyle = {
@@ -81,17 +83,17 @@ export default function Admin({ user, onLogout }) {
         </div>
       </div>
 
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '16px', flexWrap: 'wrap', display: 'flex' }}>
         <button style={btnStyle(tab === 'products')} onClick={() => setTab('products')}>📦 Products</button>
         <button style={btnStyle(tab === 'categories')} onClick={() => setTab('categories')}>🏷️ Categories</button>
         <button style={btnStyle(tab === 'sales')} onClick={() => setTab('sales')}>📊 Sales</button>
+        <button style={btnStyle(tab === 'cleared')} onClick={() => setTab('cleared')}>✅ Cleared Bills</button>
       </div>
 
       {message && <p style={{ color: '#4caf50' }}>{message}</p>}
 
       {tab === 'products' && (
         <div>
-          {/* Add Product Form */}
           <div style={{ background: '#16213e', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
             <h3 style={{ color: '#e94560', marginTop: 0 }}>Add Product</h3>
             <input placeholder="Name" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} style={inputStyle} />
@@ -104,7 +106,6 @@ export default function Admin({ user, onLogout }) {
             <button onClick={addProduct} style={{ width: '100%', padding: '10px', background: '#e94560', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Add Product</button>
           </div>
 
-          {/* Edit Modal */}
           {editProduct && (
             <div style={{ background: '#0f3460', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e94560' }}>
               <h3 style={{ color: '#e94560', marginTop: 0 }}>✏️ Edit Product</h3>
@@ -122,7 +123,6 @@ export default function Admin({ user, onLogout }) {
             </div>
           )}
 
-          {/* Products List */}
           {products.map(p => (
             <div key={p.id} style={{ background: '#16213e', padding: '12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>{p.name}</span>
@@ -167,6 +167,8 @@ export default function Admin({ user, onLogout }) {
           ))}
         </div>
       )}
+
+      {tab === 'cleared' && <ClearedBills />}
     </div>
   );
 }
