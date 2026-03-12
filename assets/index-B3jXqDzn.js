@@ -63,7 +63,7 @@ Error generating stack: `+a.message+`
       <h2>All Transactions</h2>
       <table>
         <tr><th>#</th><th>Cashier</th><th>Payment</th><th>Total</th><th>Time</th></tr>
-        ${i.sales.map(Q=>`<tr><td>${Q.id}</td><td>${Q.cashier_name}</td><td>${T(Q.payment_method)}</td><td>KSh ${Q.total}</td><td>${new Date(Q.created_at).toLocaleTimeString()}</td></tr>`).join("")}
+        ${i.sales.map(Q=>`<tr><td>${Q.id}</td><td>${Q.cashier_name}</td><td>${T(Q.payment_method)}</td><td>KSh ${Q.total}</td><td>${new Date(Q.created_at).toLocaleTimeString("en-KE",{hour:"2-digit",minute:"2-digit",hour12:!0})}</td></tr>`).join("")}
       </table>
       <button onclick="window.print()" style="margin-top:16px;padding:8px 16px;cursor:pointer">🖨️ Print Report</button>
       </body></html>
