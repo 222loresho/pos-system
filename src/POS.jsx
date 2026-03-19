@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
+import { printBill, printReceipt as doPrintReceipt } from './print';
 import api from './api';
+
+const toEAT = (iso) => {
+  const d = new Date(iso);
+  d.setHours(d.getHours() + 3);
+  return d;
+};
+
 
 export default function POS({ user, onLogout }) {
   const [products, setProducts] = useState([]);
@@ -9,6 +17,9 @@ export default function POS({ user, onLogout }) {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [mpesaCode, setMpesaCode] = useState('');
   const [cardAuth, setCardAuth] = useState('');
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
   const [message, setMessage] = useState('');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -17,6 +28,7 @@ export default function POS({ user, onLogout }) {
   const [showPayModal, setShowPayModal] = useState(false);
   const [receipt, setReceipt] = useState(null);
   const receiptRef = useRef();
+  const [view, setView] = useState('sales');
 
   const fetchProducts = () => api.get('/products/').then(res => setProducts(res.data));
   const fetchCategories = () => api.get('/categories/').then(res => setCategories(res.data));
@@ -71,6 +83,10 @@ export default function POS({ user, onLogout }) {
 
   const saveTable = async () => {
     if (cart.length === 0) return setMessage('❌ Cart is empty!');
+    setPinInput(''); setPinError(''); setShowPinModal(true);
+  };
+
+  const confirmSaveTable = async () => {
     const tableName = `Table ${getNextTableNumber()}`;
     try {
       await api.post('/orders/', {
@@ -78,7 +94,7 @@ export default function POS({ user, onLogout }) {
         items: cart.map(i => ({ product_id: i.product_id, product_name: i.product_name, quantity: i.quantity, price: i.price, subtotal: i.subtotal })),
         total
       });
-      setMessage(`✅ Saved as ${tableName}!`); setCart([]); setActiveOrder(null); fetchOrders();
+      setMessage(`✅ Saved as ${tableName}!`); setCart([]); setActiveOrder(null); fetchOrders(); setShowPinModal(false);
     } catch { setMessage('❌ Failed to save'); }
   };
 
@@ -126,51 +142,20 @@ export default function POS({ user, onLogout }) {
   };
 
   const printBill = (order) => {
-    const win = window.open('', '_blank');
-    const openedAt = new Date(order.created_at);
-    const rows = order.items.map(i => `<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>${i.product_name} x${i.quantity}</span><span>KSh ${i.subtotal}</span></div>`).join('');
-    win.document.write(`<html><head><title>Bill</title><style>body{font-family:monospace;width:300px;margin:0 auto;padding:16px;font-size:13px}h2{text-align:center;margin:0}.meta{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}.divider{border-top:1px dashed #000;margin:8px 0}.total{font-weight:bold;font-size:14px}@media print{button{display:none}}</style></head><body><h2>Triple Two Loresho</h2><p style="text-align:center;font-size:12px">📍 Loresho, Nairobi</p><div class="divider"></div><div class="meta"><span>🔖 ${order.order_number}</span><span>🪑 ${order.table_name}</span></div><div class="meta"><span>👤 ${order.waiter_name}</span><span>📅 ${openedAt.toLocaleDateString()}</span></div><div class="meta"><span></span><span>🕐 ${openedAt.toLocaleTimeString()}</span></div><div class="divider"></div>${rows}<div class="divider"></div><div class="meta total"><span>TOTAL</span><span>KSh ${order.total}</span></div><div class="divider"></div><p style="text-align:center">Please present this bill to the cashier</p><button onclick="window.print()" style="width:100%;padding:8px;margin-top:12px">🖨️ Print Bill</button></body></html>`);
-    win.document.close(); win.focus(); win.print();
+    import('./print').then(m => m.printBill(order));
   };
 
   const printReceipt = () => {
-    const content = receiptRef.current.innerHTML;
-    const win = window.open('', '_blank');
-    win.document.write(`<html><head><title>Receipt</title><style>body{font-family:monospace;width:300px;margin:0 auto;padding:16px;font-size:13px}.divider{border-top:1px dashed #000;margin:8px 0}@media print{button{display:none}}</style></head><body>${content}</body></html>`);
-    win.document.close(); win.focus(); win.print();
+    import('./print').then(m => m.printReceipt(receipt));
   };
 
-  const PaymentFields = ({ orderTotal }) => (
-    <>
-      <div className="text-sm text-muted mb-8">Payment Method</div>
-      <div className="pay-methods">
-        {['cash','mpesa','card'].map(m => (
-          <button key={m} className={`pay-method-btn ${paymentMethod === m ? 'active' : 'inactive'}`} onClick={() => setPaymentMethod(m)}>
-            {m === 'cash' ? '💵 Cash' : m === 'mpesa' ? '📱 Mpesa' : '💳 Card'}
-          </button>
-        ))}
-      </div>
-      {paymentMethod === 'cash' && (
-        <>
-          <input className="input" type="number" placeholder="💵 Cash amount received" value={amountPaid} onChange={e => setAmountPaid(e.target.value)} />
-          {amountPaid > 0 && (
-            <div className={parseFloat(amountPaid) >= orderTotal ? 'change-positive' : 'change-negative'}>
-              Change: KSh {(parseFloat(amountPaid) - orderTotal).toFixed(2)}
-            </div>
-          )}
-        </>
-      )}
-      {paymentMethod === 'mpesa' && (
-        <input className="input" placeholder="📱 Mpesa code e.g. QJK7X4ABCD" value={mpesaCode} onChange={e => setMpesaCode(e.target.value.toUpperCase())} />
-      )}
-      {paymentMethod === 'card' && (
-        <input className="input" placeholder="💳 Card authorization number" value={cardAuth} onChange={e => setCardAuth(e.target.value.toUpperCase())} />
-      )}
-    </>
-  );
 
   return (
     <div className="page">
+      <div style={{display:"flex",gap:"10px",padding:"10px 16px 0",borderBottom:"1px solid var(--card)",marginBottom:"8px"}}>
+        <button onClick={() => setView("sales")} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="sales"?"var(--accent)":"var(--card)",color:"white"}}>{"🛒 Sales"}</button>
+        <button onClick={() => {setView("tables");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="tables"?"var(--accent)":"var(--card)",color:"white"}}>{"🪑 Tables "}{pendingOrders.length > 0 ? "("+pendingOrders.length+")" : ""}</button>
+      </div>
       <div className="header">
         <h2>🛒 POS</h2>
         <div className="header-right">
@@ -181,7 +166,7 @@ export default function POS({ user, onLogout }) {
 
       {message && <div className={`message ${message.startsWith('❌') ? 'message-error' : 'message-success'}`}>{message}</div>}
 
-      {pendingOrders.length > 0 && (
+      {view === "tables" && pendingOrders.length > 0 && (
         <div className="pending-section">
           <div className="section-title">🕐 Awaiting Payment</div>
           <div className="pending-grid">
@@ -194,7 +179,7 @@ export default function POS({ user, onLogout }) {
                   </div>
                   <div className="pending-meta">
                     <span>👤 {o.waiter_name}</span>
-                    <span>🕐 {new Date(o.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+                    <span>🕐 {toEAT(o.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
                   </div>
                   <div className="pending-meta">
                     <span>{o.items?.length || 0} items</span>
@@ -211,7 +196,7 @@ export default function POS({ user, onLogout }) {
         </div>
       )}
 
-      <div className="pos-layout">
+      {view === "sales" && <div className="pos-layout">
         {/* Products */}
         <div>
           <div className="search-bar">
@@ -275,13 +260,38 @@ export default function POS({ user, onLogout }) {
               <button className="btn btn-primary" onClick={() => setShowPayModal(true)}>💳 Receive Payment</button>
             ) : (
               <>
-                <PaymentFields orderTotal={total} />
+                <>
+      <div className="text-sm text-muted mb-8">Payment Method</div>
+      <div className="pay-methods">
+        {['cash','mpesa','card'].map(m => (
+          <button key={m} className={`pay-method-btn ${paymentMethod === m ? 'active' : 'inactive'}`} onClick={() => setPaymentMethod(m)}>
+            {m === 'cash' ? '💵 Cash' : m === 'mpesa' ? '📱 Mpesa' : '💳 Card'}
+          </button>
+        ))}
+      </div>
+      {paymentMethod === 'cash' && (
+        <>
+          <input className="input" type="number" placeholder="💵 Cash amount received" value={amountPaid} onChange={e => setAmountPaid(e.target.value)} />
+          {amountPaid > 0 && (
+            <div className={parseFloat(amountPaid) >= total ? 'change-positive' : 'change-negative'}>
+              Change: KSh {(parseFloat(amountPaid) - total).toFixed(2)}
+            </div>
+          )}
+        </>
+      )}
+      {paymentMethod === 'mpesa' && (
+        <input className="input" placeholder="📱 Mpesa code e.g. QJK7X4ABCD" value={mpesaCode} onChange={e => setMpesaCode(e.target.value.toUpperCase())} />
+      )}
+      {paymentMethod === 'card' && (
+        <input className="input" placeholder="💳 Card authorization number" value={cardAuth} onChange={e => setCardAuth(e.target.value.toUpperCase())} />
+      )}
+    </>
                 <button className="btn btn-primary mt-8" onClick={handleCheckout}>✅ Receive Payment</button>
               </>
             )}
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Pay Modal */}
       {showPayModal && activeOrder && (
@@ -300,7 +310,32 @@ export default function POS({ user, onLogout }) {
             <div className="modal-row text-bold" style={{ fontSize:'15px', marginBottom:'12px' }}>
               <span>Total</span><span className="text-accent">KSh {activeOrder.total}</span>
             </div>
-            <PaymentFields orderTotal={activeOrder.total} />
+            <>
+      <div className="text-sm text-muted mb-8">Payment Method</div>
+      <div className="pay-methods">
+        {['cash','mpesa','card'].map(m => (
+          <button key={m} className={`pay-method-btn ${paymentMethod === m ? 'active' : 'inactive'}`} onClick={() => setPaymentMethod(m)}>
+            {m === 'cash' ? '💵 Cash' : m === 'mpesa' ? '📱 Mpesa' : '💳 Card'}
+          </button>
+        ))}
+      </div>
+      {paymentMethod === 'cash' && (
+        <>
+          <input className="input" type="number" placeholder="💵 Cash amount received" value={amountPaid} onChange={e => setAmountPaid(e.target.value)} />
+          {amountPaid > 0 && (
+            <div className={parseFloat(amountPaid) >= activeOrder.total ? 'change-positive' : 'change-negative'}>
+              Change: KSh {(parseFloat(amountPaid) - activeOrder.total).toFixed(2)}
+            </div>
+          )}
+        </>
+      )}
+      {paymentMethod === 'mpesa' && (
+        <input className="input" placeholder="📱 Mpesa code e.g. QJK7X4ABCD" value={mpesaCode} onChange={e => setMpesaCode(e.target.value.toUpperCase())} />
+      )}
+      {paymentMethod === 'card' && (
+        <input className="input" placeholder="💳 Card authorization number" value={cardAuth} onChange={e => setCardAuth(e.target.value.toUpperCase())} />
+      )}
+    </>
             <div className="modal-actions">
               <button className="btn btn-primary" onClick={completeOrder}>✅ Confirm</button>
               <button className="btn btn-muted" onClick={() => { setShowPayModal(false); resetPayment(); }}>Cancel</button>
@@ -356,6 +391,46 @@ export default function POS({ user, onLogout }) {
               <button className="btn" style={{ background:'#1a1a2e', color:'white' }} onClick={printReceipt}>🖨️ Print</button>
               <button className="btn btn-primary" onClick={() => setReceipt(null)}>✕ Close</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showPinModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-title">🔒 Enter Waiter PIN</div>
+            <p className="text-muted text-sm mb-8">Enter your PIN to save this order to a table</p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '16px 0' }}>
+              {[0,1,2,3].map(i => (
+                <div key={i} style={{ width: '40px', height: '40px', border: '2px solid var(--accent)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>
+                  {pinInput[i] ? '●' : ''}
+                </div>
+              ))}
+            </div>
+            {pinError && <div className="message message-error">{pinError}</div>}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', margin: '12px 0' }}>
+              {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((k, i) => (
+                <button key={i} className="btn" style={{ background: k === '' ? 'transparent' : 'var(--card)', color: 'white', fontSize: '18px', padding: '12px', border: 'none' }}
+                  onClick={() => {
+                    if (k === '⌫') { setPinInput(p => p.slice(0,-1)); }
+                    else if (k !== '' && pinInput.length < 4) { 
+                      const next = pinInput + k;
+                      setPinInput(next);
+                      if (next.length === 4) {
+                        api.post('/auth/verify-pin', { pin: next })
+                          .then(res => {
+                            if (res.data.valid) { setPinError(''); confirmSaveTable(); }
+                            else { setPinError('❌ Wrong PIN!'); setPinInput(''); }
+                          })
+                          .catch(() => { setPinError('❌ Error verifying PIN'); setPinInput(''); });
+                      }
+                    }
+                  }}
+                  disabled={k === ''}
+                >{k}</button>
+              ))}
+            </div>
+            <button className="btn btn-muted" onClick={() => setShowPinModal(false)}>Cancel</button>
           </div>
         </div>
       )}

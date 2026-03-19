@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import api from './api';
 import ClearedBills from './ClearedBills';
+import UserManagement from './UserManagement';
+import DailyReport from './DailyReport';
+import LowStock from './LowStock';
+import RevenueChart from './RevenueChart';
 
 export default function Admin({ user, onLogout, onSwitchToPOS }) {
   const [tab, setTab] = useState('products');
@@ -8,6 +12,7 @@ export default function Admin({ user, onLogout, onSwitchToPOS }) {
   const [categories, setCategories] = useState([]);
   const [sales, setSales] = useState([]);
   const [message, setMessage] = useState('');
+  const [lowStockCount, setLowStockCount] = useState(0);
   const [editProduct, setEditProduct] = useState(null);
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category_id: '' });
   const [newCategory, setNewCategory] = useState('');
@@ -20,26 +25,36 @@ export default function Admin({ user, onLogout, onSwitchToPOS }) {
 
   const addProduct = async () => {
     if (!newProduct.name || !newProduct.price) return setMessage('❌ Name and price required!');
-    await api.post('/products/', { ...newProduct, category_id: newProduct.category_id || null });
-    fetchProducts();
-    setNewProduct({ name: '', price: '', stock: '', category_id: '' });
-    setMessage('✅ Product added!');
+    try {
+      await api.post('/products/', { ...newProduct, category_id: newProduct.category_id || null });
+      fetchProducts();
+      setNewProduct({ name: '', price: '', stock: '', category_id: '' });
+      setMessage('✅ Product added!');
+    } catch (e) { setMessage('❌ ' + (e.response?.data?.error || 'Failed to add product')); }
   };
 
   const saveEdit = async () => {
-    await api.put(`/products/${editProduct.id}`, editProduct);
-    fetchProducts(); setEditProduct(null); setMessage('✅ Product updated!');
+    try {
+      await api.put(`/products/${editProduct.id}`, editProduct);
+      fetchProducts(); setEditProduct(null); setMessage('✅ Product updated!');
+    } catch (e) {
+      setMessage('❌ ' + (e.response?.data?.error || e.response?.status || 'Failed to update'));
+    }
   };
 
   const deleteProduct = async (id) => {
     if (!window.confirm('Delete this product?')) return;
-    await api.delete(`/products/${id}`); fetchProducts(); setMessage('✅ Deleted!');
+    try {
+      await api.delete(`/products/${id}`); fetchProducts(); setMessage('✅ Deleted!');
+    } catch (e) { setMessage('❌ ' + (e.response?.data?.error || 'Failed to delete')); }
   };
 
   const addCategory = async () => {
     if (!newCategory) return setMessage('❌ Category name required!');
-    await api.post('/categories/', { name: newCategory });
-    fetchCategories(); setNewCategory(''); setMessage('✅ Category added!');
+    try {
+      await api.post('/categories/', { name: newCategory });
+      fetchCategories(); setNewCategory(''); setMessage('✅ Category added!');
+    } catch (e) { setMessage('❌ ' + (e.response?.data?.error || 'Failed to add category')); }
   };
 
   const tabs = [
@@ -47,6 +62,10 @@ export default function Admin({ user, onLogout, onSwitchToPOS }) {
     { id: 'categories', label: '🏷️ Categories' },
     { id: 'sales', label: '📊 Sales' },
     { id: 'cleared', label: '✅ Cleared Bills' },
+    { id: 'users', label: '👥 Users' },
+    { id: 'report', label: '📊 Daily Report' },
+    { id: 'lowstock', label: lowStockCount > 0 ? `⚠️ Low Stock (${lowStockCount})` : '⚠️ Low Stock' },
+    { id: 'chart', label: '📈 Revenue' },
   ];
 
   return (
@@ -148,6 +167,10 @@ export default function Admin({ user, onLogout, onSwitchToPOS }) {
       )}
 
       {tab === 'cleared' && <ClearedBills />}
+      {tab === 'users' && <UserManagement />}
+      {tab === 'report' && <DailyReport />}
+      {tab === 'lowstock' && <LowStock onCount={setLowStockCount} />}
+      {tab === 'chart' && <RevenueChart />}
     </div>
   );
 }
