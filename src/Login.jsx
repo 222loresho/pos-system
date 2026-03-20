@@ -32,7 +32,7 @@ export default function Login({ onLogin }) {
       <div style={{ width: '100%', maxWidth: '340px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ fontSize: '48px', marginBottom: '8px' }}>🛒</div>
-          <h1 style={{ color: 'var(--accent)', fontSize: '22px', margin: 0 }}>Triple Two Loresho</h1>
+          <h1 style={{ color: 'var(--accent)', fontSize: '22px', margin: 0 }}>Javari</h1>
           <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 0' }}>Point of Sale</p>
         </div>
 

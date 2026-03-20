@@ -27,6 +27,7 @@ export default function POS({ user, onLogout }) {
   const receiptRef = useRef();
   const [view, setView] = useState('sales');
   const [showTableEdit, setShowTableEdit] = useState(false);
+  const [selectedWaiter, setSelectedWaiter] = useState('all');
 
   const fetchProducts = () => api.get('/products/').then(res => setProducts(res.data));
   const fetchCategories = () => api.get('/categories/').then(res => setCategories(res.data));
@@ -168,8 +169,25 @@ export default function POS({ user, onLogout }) {
       {view === "tables" && pendingOrders.length > 0 && (
         <div className="pending-section">
           <div className="section-title">🕐 Awaiting Payment</div>
+
+          {/* Waiter filter bubbles */}
+          <div style={{display:'flex',gap:'8px',flexWrap:'wrap',padding:'0 0 12px',overflowX:'auto'}}>
+            <button
+              onClick={() => setSelectedWaiter('all')}
+              style={{padding:'6px 14px',borderRadius:'20px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'12px',background:selectedWaiter==='all'?'var(--accent)':'var(--card)',color:'white',whiteSpace:'nowrap'}}>
+              👥 All ({pendingOrders.length})
+            </button>
+            {[...new Set(pendingOrders.map(o => o.waiter_name))].map(waiter => (
+              <button key={waiter}
+                onClick={() => setSelectedWaiter(waiter)}
+                style={{padding:'6px 14px',borderRadius:'20px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'12px',background:selectedWaiter===waiter?'var(--accent)':'var(--card)',color:'white',whiteSpace:'nowrap'}}>
+                👤 {waiter} ({pendingOrders.filter(o => o.waiter_name === waiter).length})
+              </button>
+            ))}
+          </div>
+
           <div className="pending-grid">
-            {pendingOrders.map(o => (
+            {pendingOrders.filter(o => selectedWaiter === 'all' || o.waiter_name === selectedWaiter).map(o => (
               <div key={o.id} className={`pending-card ${activeOrder?.id === o.id ? 'active' : 'inactive'}`}>
                 <div onClick={() => loadOrder(o)} style={{ cursor:'pointer' }}>
                   <div className="flex-between mb-8">
@@ -419,7 +437,7 @@ export default function POS({ user, onLogout }) {
           <div className="modal modal-white">
             <div ref={receiptRef}>
               <div className="receipt-header">
-                <div className="receipt-title">Triple Two Loresho</div>
+                <div className="receipt-title">Javari</div>
                 <div className="receipt-sub">📍 Loresho, Nairobi</div>
               </div>
               <div className="modal-divider-white" />

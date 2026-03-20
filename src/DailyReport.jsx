@@ -41,7 +41,7 @@ export default function DailyReport() {
         th{background:#f5f5f5;font-weight:bold}
         @media print{button{display:none}}
       </style></head><body>
-      <h1>Triple Two Loresho</h1>
+      <h1>Javari</h1>
       <p style="text-align:center">Daily Sales Report — ${date}</p>
       <h2>Summary</h2>
       <div class="row"><span>Total Revenue:</span><span class="bold">KSh ${report.total_revenue}</span></div>

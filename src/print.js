@@ -47,7 +47,7 @@ export const printBill = async (order) => {
   const openedAt = new Date(order.created_at);
   const lines = [
     INIT,
-    CENTER + BOLD_ON + 'Triple Two Loresho' + BOLD_OFF,
+    CENTER + BOLD_ON + 'Javari' + BOLD_OFF,
     CENTER + 'Loresho, Nairobi',
     LEFT + LINE,
     pad('Order: ' + order.order_number, 'Table: ' + order.table_name),
@@ -73,7 +73,7 @@ export const printReceipt = async (receipt) => {
   const pmLabel = receipt.paymentMethod === 'mpesa' ? 'Mpesa' : receipt.paymentMethod === 'card' ? 'Card' : 'Cash';
   const lines = [
     INIT,
-    CENTER + BOLD_ON + 'Triple Two Loresho' + BOLD_OFF,
+    CENTER + BOLD_ON + 'Javari' + BOLD_OFF,
     CENTER + 'Loresho, Nairobi',
     LEFT + LINE,
     receipt.orderNumber ? pad('Order: ' + receipt.orderNumber, 'Table: ' + (receipt.tableName || '-')) : '',
@@ -116,7 +116,7 @@ function fallbackPrintBill(order) {
   win.document.write(`<html><head><title>Bill</title>
   <style>*{margin:0;padding:0;box-sizing:border-box}@page{margin:0;size:80mm auto}body{font-family:'Courier New',monospace;font-size:12px;width:76mm;padding:4mm}h2{text-align:center;font-size:15px;margin-bottom:2px}.center{text-align:center}.right{text-align:right}.sub{text-align:center;font-size:11px;margin-bottom:4px}.divider{border-top:1px dashed #000;margin:5px 0}.meta-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px}table{width:100%;border-collapse:collapse;margin:4px 0}td{padding:2px 0;font-size:11px;vertical-align:top}.right{width:60px;white-space:nowrap}.total-row{display:flex;justify-content:space-between;font-weight:bold;font-size:13px;margin:4px 0}@media print{button{display:none}}</style>
   </head><body>
-  <h2>Triple Two Loresho</h2><p class="sub">Loresho, Nairobi</p>
+  <h2>Javari</h2><p class="sub">Loresho, Nairobi</p>
   <div class="divider"></div>
   <div class="meta-row"><span>Order: ${order.order_number}</span><span>Table: ${order.table_name}</span></div>
   <div class="meta-row"><span>Waiter: ${order.waiter_name}</span><span>${openedAt.toLocaleDateString()}</span></div>
@@ -141,7 +141,7 @@ function fallbackPrintReceipt(receipt) {
   win.document.write(`<html><head><title>Receipt</title>
   <style>*{margin:0;padding:0;box-sizing:border-box}@page{margin:0;size:80mm auto}body{font-family:'Courier New',monospace;font-size:12px;width:76mm;padding:4mm}h2{text-align:center;font-size:15px;margin-bottom:2px}.center{text-align:center}.right{text-align:right}.sub{text-align:center;font-size:11px;margin-bottom:4px}.divider{border-top:1px dashed #000;margin:5px 0}.meta-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px}table{width:100%;border-collapse:collapse;margin:4px 0}td{padding:2px 0;font-size:11px}.right{width:60px;white-space:nowrap}.total-row{display:flex;justify-content:space-between;font-weight:bold;font-size:13px;margin:4px 0}.summary-row{display:flex;justify-content:space-between;font-size:11px;margin:2px 0}.note{text-align:center;font-size:10px;margin-top:6px;border:1px dashed #999;padding:4px;font-style:italic}@media print{button{display:none}}</style>
   </head><body>
-  <h2>Triple Two Loresho</h2><p class="sub">Loresho, Nairobi</p>
+  <h2>Javari</h2><p class="sub">Loresho, Nairobi</p>
   <div class="divider"></div>
   ${receipt.orderNumber ? `<div class="meta-row"><span>Order: ${receipt.orderNumber}</span><span>Table: ${receipt.tableName || '-'}</span></div>` : ''}
   <div class="meta-row"><span>Cashier: ${receipt.cashier}</span><span>${receipt.date.split(',')[0]}</span></div>
