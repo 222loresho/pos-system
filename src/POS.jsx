@@ -13,10 +13,7 @@ export default function POS({ user, onLogout }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
-  const [amountPaid, setAmountPaid] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [mpesaCode, setMpesaCode] = useState('');
-  const [cardAuth, setCardAuth] = useState('');
+  const [splits, setSplits] = useState([{method:'cash',amount:'',ref:''}]);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');
@@ -29,6 +26,7 @@ export default function POS({ user, onLogout }) {
   const [receipt, setReceipt] = useState(null);
   const receiptRef = useRef();
   const [view, setView] = useState('sales');
+  const [showTableEdit, setShowTableEdit] = useState(false);
 
   const fetchProducts = () => api.get('/products/').then(res => setProducts(res.data));
   const fetchCategories = () => api.get('/categories/').then(res => setCategories(res.data));
@@ -65,7 +63,7 @@ export default function POS({ user, onLogout }) {
 
   const total = cart.reduce((sum, i) => sum + i.subtotal, 0);
 
-  const resetPayment = () => { setAmountPaid(''); setPaymentMethod('cash'); setMpesaCode(''); setCardAuth(''); };
+  const resetPayment = () => { setSplits([{method:'cash',amount:'',ref:''}]); };
 
   const getNextTableNumber = () => {
     if (pendingOrders.length === 0) return 1;
@@ -75,11 +73,12 @@ export default function POS({ user, onLogout }) {
 
   const loadOrder = (order) => {
     setActiveOrder(order);
+    setShowTableEdit(true);
     setCart(order.items.map(i => ({ product_id: i.product_id, product_name: i.product_name, price: i.price, quantity: i.quantity, subtotal: i.subtotal })));
     setMessage(`📋 Editing ${order.table_name}`);
   };
 
-  const clearActiveOrder = () => { setActiveOrder(null); setCart([]); resetPayment(); setMessage(''); };
+  const clearActiveOrder = () => { setActiveOrder(null); setCart([]); resetPayment(); setMessage(''); setShowTableEdit(false); };
 
   const saveTable = async () => {
     if (cart.length === 0) return setMessage('❌ Cart is empty!');
@@ -125,7 +124,7 @@ export default function POS({ user, onLogout }) {
         payment_method: paymentMethod
       });
       setReceipt({ orderNumber: activeOrder.order_number, tableName: activeOrder.table_name, waiterName: activeOrder.waiter_name, items: activeOrder.items, total: activeOrder.total, amountPaid: paymentMethod === 'cash' ? parseFloat(amountPaid) : activeOrder.total, change: res.data.change_due, cashier: user.name, paymentMethod, mpesaCode: paymentMethod === 'mpesa' ? mpesaCode : null, cardAuth: paymentMethod === 'card' ? cardAuth : null, date: new Date().toLocaleString() });
-      resetPayment(); setActiveOrder(null); setShowPayModal(false); setCart([]);
+      resetPayment(); setActiveOrder(null); setShowPayModal(false); setCart([]); setShowTableEdit(false);
       fetchOrders(); fetchProducts();
     } catch { setMessage('❌ Payment failed!'); }
   };
@@ -152,16 +151,16 @@ export default function POS({ user, onLogout }) {
 
   return (
     <div className="page">
-      <div style={{display:"flex",gap:"10px",padding:"10px 16px 0",borderBottom:"1px solid var(--card)",marginBottom:"8px"}}>
-        <button onClick={() => setView("sales")} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="sales"?"var(--accent)":"var(--card)",color:"white"}}>{"🛒 Sales"}</button>
-        <button onClick={() => {setView("tables");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="tables"?"var(--accent)":"var(--card)",color:"white"}}>{"🪑 Tables "}{pendingOrders.length > 0 ? "("+pendingOrders.length+")" : ""}</button>
-      </div>
       <div className="header">
         <h2>🛒 POS</h2>
         <div className="header-right">
           <span className="header-user">👤 {user.name}</span>
           <button className="btn btn-primary btn-sm" onClick={onLogout}>Logout</button>
         </div>
+      </div>
+      <div style={{display:"flex",gap:"10px",padding:"10px 16px 0",borderBottom:"1px solid var(--card)",marginBottom:"8px"}}>
+        <button onClick={() => setView("sales")} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="sales"?"var(--accent)":"var(--card)",color:"white"}}>{"🛒 Sales"}</button>
+        <button onClick={() => {setView("tables");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="tables"?"var(--accent)":"var(--card)",color:"white"}}>{"🪑 Tables "}{pendingOrders.length > 0 ? "("+pendingOrders.length+")" : ""}</button>
       </div>
 
       {message && <div className={`message ${message.startsWith('❌') ? 'message-error' : 'message-success'}`}>{message}</div>}
@@ -188,7 +187,7 @@ export default function POS({ user, onLogout }) {
                 </div>
                 <div className="pending-actions">
                   <button className="pending-btn pending-btn-bill" onClick={e => { e.stopPropagation(); printBill(o); }}>🧾 Bill</button>
-                  <button className="pending-btn pending-btn-pay" onClick={e => { e.stopPropagation(); loadOrder(o); setShowPayModal(true); }}>💳 Pay</button>
+                  <button className="pending-btn pending-btn-pay" onClick={e => { e.stopPropagation(); loadOrder(o); setShowPayModal(true); }}>💳 Submit</button>
                 </div>
               </div>
             ))}
@@ -257,47 +256,98 @@ export default function POS({ user, onLogout }) {
             )}
 
             {activeOrder ? (
-              <button className="btn btn-primary" onClick={() => setShowPayModal(true)}>💳 Receive Payment</button>
+              <button className="btn btn-primary" onClick={() => setShowPayModal(true)}>💳 Submit Payment</button>
             ) : (
               <>
                 <>
-      <div className="text-sm text-muted mb-8">Payment Method</div>
-      <div className="pay-methods">
-        {['cash','mpesa','card'].map(m => (
-          <button key={m} className={`pay-method-btn ${paymentMethod === m ? 'active' : 'inactive'}`} onClick={() => setPaymentMethod(m)}>
-            {m === 'cash' ? '💵 Cash' : m === 'mpesa' ? '📱 Mpesa' : '💳 Card'}
-          </button>
-        ))}
-      </div>
-      {paymentMethod === 'cash' && (
-        <>
-          <input className="input" type="number" placeholder="💵 Cash amount received" value={amountPaid} onChange={e => setAmountPaid(e.target.value)} />
-          {amountPaid > 0 && (
-            <div className={parseFloat(amountPaid) >= total ? 'change-positive' : 'change-negative'}>
-              Change: KSh {(parseFloat(amountPaid) - total).toFixed(2)}
-            </div>
+{/* Payment Fields */}
+      <div className="text-sm text-muted mb-8">Payment Method(s)</div>
+      {splits.map((split, idx) => (
+        <div key={idx} style={{border:'1px solid var(--card)',borderRadius:'8px',padding:'10px',marginBottom:'8px'}}>
+          <div style={{display:'flex',gap:'8px',marginBottom:'8px',alignItems:'center'}}>
+            <select className="input" style={{margin:0,flex:1}} value={split.method}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,method:e.target.value,ref:''} : s))}>
+              <option value="cash">💵 Cash</option>
+              <option value="mpesa">📱 Mpesa</option>
+              <option value="card">💳 Card</option>
+              <option value="billout">📋 Billout</option>
+            </select>
+            <input className="input" type="number" placeholder="Amount" style={{margin:0,flex:1}}
+              value={split.amount}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,amount:e.target.value} : s))} />
+            {splits.length > 1 && (
+              <button className="btn btn-sm btn-primary" onClick={() => setSplits(splits.filter((_,i) => i!==idx))}>✕</button>
+            )}
+          </div>
+          {split.method === 'mpesa' && (
+            <input className="input" placeholder="📱 Mpesa code" style={{margin:0}}
+              value={split.ref}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,ref:e.target.value.toUpperCase()} : s))} />
           )}
-        </>
-      )}
-      {paymentMethod === 'mpesa' && (
-        <input className="input" placeholder="📱 Mpesa code e.g. QJK7X4ABCD" value={mpesaCode} onChange={e => setMpesaCode(e.target.value.toUpperCase())} />
-      )}
-      {paymentMethod === 'card' && (
-        <input className="input" placeholder="💳 Card authorization number" value={cardAuth} onChange={e => setCardAuth(e.target.value.toUpperCase())} />
-      )}
+          {split.method === 'card' && (
+            <input className="input" placeholder="💳 Auth number" style={{margin:0}}
+              value={split.ref}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,ref:e.target.value.toUpperCase()} : s))} />
+          )}
+          {split.method === 'billout' && (
+            <input className="input" placeholder="📋 Billout reference" style={{margin:0}}
+              value={split.ref}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,ref:e.target.value.toUpperCase()} : s))} />
+          )}
+        </div>
+      ))}
+      <button className="btn btn-sm" style={{background:'var(--card)',color:'white',marginBottom:'8px'}}
+        onClick={() => setSplits([...splits, {method:'cash',amount:'',ref:''}])}>
+        + Add Payment Method
+      </button>
+      <div className="text-sm text-muted mb-8">
+        Paid: KSh {splits.reduce((a,s) => a+(parseFloat(s.amount)||0),0)} / KSh {total}
+      </div>
     </>
-                <button className="btn btn-primary mt-8" onClick={handleCheckout}>✅ Receive Payment</button>
+                <button className="btn btn-primary mt-8" onClick={handleCheckout}>✅ Submit Payment</button>
               </>
             )}
           </div>
         </div>
       </div>}
 
+
+      {view === 'tables' && showTableEdit && activeOrder && (
+        <div className="card" style={{margin:'12px 16px',border:'1px solid var(--accent)'}}>
+          <div className="flex-between mb-8">
+            <div className="text-accent text-bold">✏️ {activeOrder.table_name} — {activeOrder.order_number}</div>
+            <button className="btn-icon" onClick={clearActiveOrder}>✕</button>
+          </div>
+          <div className="section-title">Items</div>
+          {cart.map(item => (
+            <div key={item.product_id} className="cart-item">
+              <div className="cart-item-row">
+                <span className="cart-item-name">{item.product_name}</span>
+                <span className="cart-item-price">KSh {item.subtotal}</span>
+              </div>
+              <div className="cart-qty-row">
+                <button className="qty-btn" onClick={() => updateQty(item.product_id, -1)}>−</button>
+                <span>{item.quantity}</span>
+                <button className="qty-btn" onClick={() => updateQty(item.product_id, 1)}>+</button>
+                <button className="btn-icon text-sm" style={{marginLeft:'auto'}} onClick={() => removeFromCart(item.product_id)}>remove</button>
+              </div>
+            </div>
+          ))}
+          <div className="total-row" style={{margin:'8px 0'}}>
+            <span>Total</span>
+            <span className="total-amount">KSh {total}</span>
+          </div>
+          <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+            <button className="btn btn-success" style={{flex:1}} onClick={updateTable}>🔄 Update Table</button>
+            <button className="btn btn-primary" style={{flex:1}} onClick={() => setShowPayModal(true)}>💳 Submit</button>
+          </div>
+        </div>
+      )}
       {/* Pay Modal */}
       {showPayModal && activeOrder && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>💳 Receive Payment</h3>
+            <h3>💳 Submit Payment</h3>
             <div className="modal-row"><span>🔖 {activeOrder.order_number}</span><span>🪑 {activeOrder.table_name}</span></div>
             <div className="text-muted text-sm mb-8">👤 Waiter: {activeOrder.waiter_name}</div>
             <div className="modal-divider" />
@@ -311,30 +361,49 @@ export default function POS({ user, onLogout }) {
               <span>Total</span><span className="text-accent">KSh {activeOrder.total}</span>
             </div>
             <>
-      <div className="text-sm text-muted mb-8">Payment Method</div>
-      <div className="pay-methods">
-        {['cash','mpesa','card'].map(m => (
-          <button key={m} className={`pay-method-btn ${paymentMethod === m ? 'active' : 'inactive'}`} onClick={() => setPaymentMethod(m)}>
-            {m === 'cash' ? '💵 Cash' : m === 'mpesa' ? '📱 Mpesa' : '💳 Card'}
-          </button>
-        ))}
-      </div>
-      {paymentMethod === 'cash' && (
-        <>
-          <input className="input" type="number" placeholder="💵 Cash amount received" value={amountPaid} onChange={e => setAmountPaid(e.target.value)} />
-          {amountPaid > 0 && (
-            <div className={parseFloat(amountPaid) >= activeOrder.total ? 'change-positive' : 'change-negative'}>
-              Change: KSh {(parseFloat(amountPaid) - activeOrder.total).toFixed(2)}
-            </div>
+{/* Payment Fields */}
+      <div className="text-sm text-muted mb-8">Payment Method(s)</div>
+      {splits.map((split, idx) => (
+        <div key={idx} style={{border:'1px solid var(--card)',borderRadius:'8px',padding:'10px',marginBottom:'8px'}}>
+          <div style={{display:'flex',gap:'8px',marginBottom:'8px',alignItems:'center'}}>
+            <select className="input" style={{margin:0,flex:1}} value={split.method}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,method:e.target.value,ref:''} : s))}>
+              <option value="cash">💵 Cash</option>
+              <option value="mpesa">📱 Mpesa</option>
+              <option value="card">💳 Card</option>
+              <option value="billout">📋 Billout</option>
+            </select>
+            <input className="input" type="number" placeholder="Amount" style={{margin:0,flex:1}}
+              value={split.amount}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,amount:e.target.value} : s))} />
+            {splits.length > 1 && (
+              <button className="btn btn-sm btn-primary" onClick={() => setSplits(splits.filter((_,i) => i!==idx))}>✕</button>
+            )}
+          </div>
+          {split.method === 'mpesa' && (
+            <input className="input" placeholder="📱 Mpesa code" style={{margin:0}}
+              value={split.ref}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,ref:e.target.value.toUpperCase()} : s))} />
           )}
-        </>
-      )}
-      {paymentMethod === 'mpesa' && (
-        <input className="input" placeholder="📱 Mpesa code e.g. QJK7X4ABCD" value={mpesaCode} onChange={e => setMpesaCode(e.target.value.toUpperCase())} />
-      )}
-      {paymentMethod === 'card' && (
-        <input className="input" placeholder="💳 Card authorization number" value={cardAuth} onChange={e => setCardAuth(e.target.value.toUpperCase())} />
-      )}
+          {split.method === 'card' && (
+            <input className="input" placeholder="💳 Auth number" style={{margin:0}}
+              value={split.ref}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,ref:e.target.value.toUpperCase()} : s))} />
+          )}
+          {split.method === 'billout' && (
+            <input className="input" placeholder="📋 Billout reference" style={{margin:0}}
+              value={split.ref}
+              onChange={e => setSplits(splits.map((s,i) => i===idx ? {...s,ref:e.target.value.toUpperCase()} : s))} />
+          )}
+        </div>
+      ))}
+      <button className="btn btn-sm" style={{background:'var(--card)',color:'white',marginBottom:'8px'}}
+        onClick={() => setSplits([...splits, {method:'cash',amount:'',ref:''}])}>
+        + Add Payment Method
+      </button>
+      <div className="text-sm text-muted mb-8">
+        Paid: KSh {splits.reduce((a,s) => a+(parseFloat(s.amount)||0),0)} / KSh {activeOrder.total}
+      </div>
     </>
             <div className="modal-actions">
               <button className="btn btn-primary" onClick={completeOrder}>✅ Confirm</button>
