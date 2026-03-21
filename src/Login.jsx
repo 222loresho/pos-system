@@ -14,6 +14,7 @@ export default function Login({ onLogin }) {
       const res = await api.post('/auth/pin-login', { username, pin });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      localStorage.setItem('userpin', pin);
       onLogin(res.data.user);
     } catch (e) {
       setError(e.response?.data?.error || '❌ Login failed');

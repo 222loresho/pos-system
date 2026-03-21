@@ -513,12 +513,9 @@ export default function POS({ user, onLogout }) {
                       const next = pinInput + k;
                       setPinInput(next);
                       if (next.length === 4) {
-                        api.post('/auth/verify-pin', { pin: next })
-                          .then(res => {
-                            if (res.data.valid) { setPinError(''); confirmSaveTable(); }
-                            else { setPinError('❌ Wrong PIN!'); setPinInput(''); }
-                          })
-                          .catch(() => { setPinError('❌ Error verifying PIN'); setPinInput(''); });
+                        const savedPin = localStorage.getItem('userpin');
+                        if (next === savedPin) { setPinError(''); confirmSaveTable(); }
+                        else { setPinError('❌ Wrong PIN!'); setPinInput(''); }
                       }
                     }
                   }}
