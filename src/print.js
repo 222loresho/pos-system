@@ -70,7 +70,7 @@ export const printBill = async (order) => {
 };
 
 export const printReceipt = async (receipt) => {
-  const pmLabel = receipt.paymentMethod === 'mpesa' ? 'Mpesa' : receipt.paymentMethod === 'card' ? 'Card' : 'Cash';
+  const pmLabel = (m) => m === 'mpesa' ? 'Mpesa' : m === 'card' ? 'Card' : m === 'billout' ? 'Billout' : 'Cash';
   const lines = [
     INIT,
     CENTER + BOLD_ON + 'Javari' + BOLD_OFF,
@@ -87,12 +87,9 @@ export const printReceipt = async (receipt) => {
     BOLD_ON + pad('TOTAL', 'KSh ' + receipt.total) + BOLD_OFF,
     LINE,
     pad('Payment:', pmLabel),
-    ...(receipt.paymentMethod === 'cash' ? [
-      pad('Amount Paid:', 'KSh ' + receipt.amountPaid),
-      pad('Change:', 'KSh ' + receipt.change),
-    ] : []),
-    ...(receipt.paymentMethod === 'mpesa' ? [pad('Mpesa Code:', receipt.mpesaCode)] : []),
-    ...(receipt.paymentMethod === 'card' ? [pad('Auth No:', receipt.cardAuth)] : []),
+    ...(receipt.splits && receipt.splits.length > 0 
+      ? receipt.splits.map(s => pad(pmLabel(s.method) + (s.ref ? ' ('+s.ref+')' : '') + ':', 'KSh ' + s.amount))
+      : [pad('Payment:', pmLabel(receipt.paymentMethod || 'cash'))]),
     LINE,
     CENTER + 'Thank you for your visit!',
     CENTER + 'Please come again',
@@ -150,10 +147,10 @@ function fallbackPrintReceipt(receipt) {
   <table>${rows}</table>
   <div class="divider"></div>
   <div class="total-row"><span>TOTAL</span><span>KSh ${receipt.total}</span></div>
-  <div class="summary-row"><span>Payment:</span><span>${receipt.paymentMethod === 'mpesa' ? 'Mpesa' : receipt.paymentMethod === 'card' ? 'Card' : 'Cash'}</span></div>
-  ${receipt.paymentMethod === 'cash' ? `<div class="summary-row"><span>Paid:</span><span>KSh ${receipt.amountPaid}</span></div><div class="summary-row"><span>Change:</span><span>KSh ${receipt.change}</span></div>` : ''}
-  ${receipt.paymentMethod === 'mpesa' ? `<div class="summary-row"><span>Mpesa Code:</span><span>${receipt.mpesaCode}</span></div>` : ''}
-  ${receipt.paymentMethod === 'card' ? `<div class="summary-row"><span>Auth No:</span><span>${receipt.cardAuth}</span></div>` : ''}
+  ${(receipt.splits && receipt.splits.length > 0 
+    ? receipt.splits.map(s => `<div class="summary-row"><span>${s.method === 'mpesa' ? 'Mpesa' : s.method === 'card' ? 'Card' : s.method === 'billout' ? 'Billout' : 'Cash'}${s.ref ? ' ('+s.ref+')' : ''}:</span><span>KSh ${s.amount}</span></div>`).join('')
+    : `<div class="summary-row"><span>Payment:</span><span>${receipt.paymentMethod || 'Cash'}</span></div>`
+  )}
   <div class="divider"></div>
   <p class="center" style="font-size:12px">Thank you for your visit!</p>
   <div class="note">Note to Waiter: Submit this receipt attached with the bill to the cashier.</div>

@@ -110,9 +110,13 @@ export default function POS({ user, onLogout }) {
   };
 
   const validatePayment = (orderTotal) => {
-    if (paymentMethod === 'cash' && (!amountPaid || parseFloat(amountPaid) < orderTotal)) return '❌ Insufficient cash amount!';
-    if (paymentMethod === 'mpesa' && !mpesaCode.trim()) return '❌ Enter Mpesa transaction code!';
-    if (paymentMethod === 'card' && !cardAuth.trim()) return '❌ Enter card authorization number!';
+    const totalPaid = splits.reduce((a, s) => a + (parseFloat(s.amount) || 0), 0);
+    if (totalPaid < orderTotal) return '❌ Total paid (KSh ' + totalPaid + ') is less than total (KSh ' + orderTotal + ')!';
+    for (const s of splits) {
+      if (!s.amount || parseFloat(s.amount) <= 0) return '❌ Enter amount for all payment methods!';
+      if (s.method === 'mpesa' && !s.ref.trim()) return '❌ Enter Mpesa code!';
+      if (s.method === 'card' && !s.ref.trim()) return '❌ Enter card auth number!';
+    }
     return null;
   };
 
@@ -471,13 +475,21 @@ export default function POS({ user, onLogout }) {
               <div className="modal-divider-white" />
               <div className="receipt-total"><span>TOTAL</span><span>KSh {receipt.total}</span></div>
               <div style={{ marginTop:'6px' }}>
-                <div className="receipt-item"><span>Payment</span><span>{receipt.paymentMethod === 'mpesa' ? '📱 Mpesa' : receipt.paymentMethod === 'card' ? '💳 Card' : '💵 Cash'}</span></div>
+                {receipt.splits && receipt.splits.length > 0 ? (
+                  receipt.splits.map((s, i) => (
+                    <div key={i} className="receipt-item">
+                      <span>{s.method === 'mpesa' ? '📱 Mpesa' : s.method === 'card' ? '💳 Card' : s.method === 'billout' ? '📋 Billout' : '💵 Cash'}{s.ref ? ` (${s.ref})` : ''}</span>
+                      <span>KSh {s.amount}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="receipt-item"><span>Payment</span><span>{receipt.paymentMethod}</span></div>
+                )}
                 {receipt.paymentMethod === 'cash' && <>
                   <div className="receipt-item"><span>Amount Paid</span><span>KSh {receipt.amountPaid}</span></div>
                   <div className="receipt-item"><span>Change</span><span>KSh {receipt.change}</span></div>
                 </>}
-                {receipt.paymentMethod === 'mpesa' && <div className="receipt-item"><span>Mpesa Code</span><span style={{ fontWeight:'bold' }}>{receipt.mpesaCode}</span></div>}
-                {receipt.paymentMethod === 'card' && <div className="receipt-item"><span>Auth No.</span><span style={{ fontWeight:'bold' }}>{receipt.cardAuth}</span></div>}
+
               </div>
               <div className="modal-divider-white" />
               <div style={{ textAlign:'center', fontSize:'12px', color:'#333' }}>Thank you for your visit! 🙏</div>
