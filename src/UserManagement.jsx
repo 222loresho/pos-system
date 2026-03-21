@@ -6,24 +6,24 @@ export default function UserManagement() {
   const [message, setMessage] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState(null);
-  const [form, setForm] = useState({ name: '', username: '', password: '', role: 'cashier', pin: '' });
+  const [form, setForm] = useState({ name: '', username: '', role: 'cashier', pin: '' });
 
   const fetchUsers = () => api.get('/users/').then(res => setUsers(res.data)).catch(() => setMessage('❌ Failed to load users'));
   useEffect(() => { fetchUsers(); }, []);
 
-  const resetForm = () => { setForm({ name: '', username: '', password: '', role: 'cashier', pin: '' }); setEditUser(null); setShowForm(false); setMessage(''); };
+  const resetForm = () => { setForm({ name: '', username: '', role: 'cashier', pin: '' }); setEditUser(null); setShowForm(false); setMessage(''); };
 
   const saveUser = async () => {
     if (!form.name.trim() || !form.username.trim()) return setMessage('❌ Name and username required!');
-    if (!editUser && !form.password.trim()) return setMessage('❌ Password required!');
+    if (!form.pin && !editUser) return setMessage('❌ PIN required!');
     if (form.pin && (form.pin.length !== 4 || !/^\d{4}$/.test(form.pin))) return setMessage('❌ PIN must be exactly 4 digits!');
     try {
       if (editUser) {
         await api.put(`/users/${editUser.id}`, form);
-        setMessage('✅ User updated successfully!');
+        setMessage('✅ User updated!');
       } else {
-        await api.post('/users/', { ...form, pin: form.pin || '1234' });
-        setMessage('✅ User created! Default PIN: ' + (form.pin || '1234'));
+        await api.post('/users/', form);
+        setMessage('✅ User created!');
       }
       resetForm(); fetchUsers();
     } catch (e) {
@@ -36,7 +36,7 @@ export default function UserManagement() {
       await api.put(`/users/${user.id}`, { active: !user.active });
       fetchUsers();
       setMessage(`✅ ${user.name} ${!user.active ? 'activated' : 'deactivated'}!`);
-    } catch (e) { setMessage('❌ Failed to update user'); }
+    } catch { setMessage('❌ Failed'); }
   };
 
   const deleteUser = async (user) => {
@@ -45,17 +45,17 @@ export default function UserManagement() {
       await api.delete(`/users/${user.id}`);
       setMessage('✅ User deleted!');
       fetchUsers();
-    } catch (e) { setMessage('❌ ' + (e.response?.data?.error || 'Failed to delete')); }
+    } catch (e) { setMessage('❌ ' + (e.response?.data?.error || 'Failed')); }
   };
 
   const startEdit = (user) => {
     setEditUser(user);
-    setForm({ name: user.name, username: user.username, password: '', role: user.role, pin: '' });
+    setForm({ name: user.name, username: user.username, role: user.role, pin: '' });
     setShowForm(true);
     setMessage('');
   };
 
-  const roleColor = (role) => role === 'admin' ? '#e94560' : role === 'waiter' ? '#f0a500' : '#4caf50';
+  const roleColor = (role) => role === 'admin' ? '#e94560' : role === 'waiter' ? '#f0a500' : 'var(--accent)';
 
   return (
     <div>
@@ -73,8 +73,7 @@ export default function UserManagement() {
           <div className="section-title">{editUser ? '✏️ Edit User' : '➕ New User'}</div>
           <input className="input" placeholder="Full Name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input className="input" placeholder="Username *" value={form.username} onChange={e => setForm({ ...form, username: e.target.value.toLowerCase() })} disabled={!!editUser} />
-          <input className="input" type="password" placeholder={editUser ? 'New password (leave blank to keep)' : 'Password *'} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
-          <input className="input" type="number" placeholder="4-digit PIN (default: 1234)" maxLength={4} value={form.pin} onChange={e => setForm({ ...form, pin: e.target.value.slice(0, 4) })} />
+          <input className="input" type="number" placeholder={editUser ? 'New PIN (leave blank to keep)' : '4-digit PIN *'} maxLength={4} value={form.pin} onChange={e => setForm({ ...form, pin: e.target.value.slice(0, 4) })} />
           <select className="input" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
             <option value="cashier">💰 Cashier</option>
             <option value="admin">👑 Admin</option>
@@ -98,7 +97,7 @@ export default function UserManagement() {
               </span>
               {!u.active && <span style={{ background: '#555', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '10px' }}>INACTIVE</span>}
             </div>
-            <div className="admin-item-sub">@{u.username} {u.pin ? `· PIN: ${u.pin}` : ''}</div>
+            <div className="admin-item-sub">@{u.username} · PIN: {u.pin || '----'}</div>
           </div>
           <div className="admin-item-actions">
             <button className="btn btn-sm" style={{ background: 'var(--card)', color: 'white' }} onClick={() => startEdit(u)}>✏️</button>
