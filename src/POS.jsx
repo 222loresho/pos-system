@@ -120,14 +120,16 @@ export default function POS({ user, onLogout }) {
     const err = validatePayment(activeOrder.total);
     if (err) return setMessage(err);
     try {
-      const res = await api.post(`/orders/${activeOrder.id}/complete`, {
-        amount_paid: paymentMethod === 'cash' ? parseFloat(amountPaid) : activeOrder.total,
-        payment_method: paymentMethod
+      const totalPaid = splits.reduce((a, s) => a + (parseFloat(s.amount) || 0), 0);
+      const primaryMethod = splits.length === 1 ? splits[0].method : 'split';
+      await api.post(`/orders/${activeOrder.id}/submit`, {
+        payment_method: primaryMethod,
+        splits: splits
       });
-      setReceipt({ orderNumber: activeOrder.order_number, tableName: activeOrder.table_name, waiterName: activeOrder.waiter_name, items: activeOrder.items, total: activeOrder.total, amountPaid: paymentMethod === 'cash' ? parseFloat(amountPaid) : activeOrder.total, change: res.data.change_due, cashier: user.name, paymentMethod, mpesaCode: paymentMethod === 'mpesa' ? mpesaCode : null, cardAuth: paymentMethod === 'card' ? cardAuth : null, date: new Date().toLocaleString() });
+      setMessage('✅ Payment submitted! Waiting for cashier confirmation.');
       resetPayment(); setActiveOrder(null); setShowPayModal(false); setCart([]); setShowTableEdit(false);
       fetchOrders(); fetchProducts();
-    } catch { setMessage('❌ Payment failed!'); }
+    } catch { setMessage('❌ Submission failed!'); }
   };
 
   const handleCheckout = async () => {
@@ -135,8 +137,15 @@ export default function POS({ user, onLogout }) {
     const err = validatePayment(total);
     if (err) return setMessage(err);
     try {
-      const res = await api.post('/sales/', { items: cart, amount_paid: paymentMethod === 'cash' ? parseFloat(amountPaid) : total, payment_method: paymentMethod });
-      setReceipt({ orderNumber: null, tableName: null, waiterName: user.name, items: cart, total, amountPaid: paymentMethod === 'cash' ? parseFloat(amountPaid) : total, change: res.data.change_due, cashier: user.name, paymentMethod, mpesaCode: paymentMethod === 'mpesa' ? mpesaCode : null, cardAuth: paymentMethod === 'card' ? cardAuth : null, date: new Date().toLocaleString() });
+      const totalPaid = splits.reduce((a, s) => a + (parseFloat(s.amount) || 0), 0);
+      const primaryMethod = splits.length === 1 ? splits[0].method : 'split';
+      const res = await api.post('/sales/', {
+        items: cart,
+        amount_paid: totalPaid,
+        payment_method: primaryMethod,
+        splits: splits
+      });
+      setReceipt({ orderNumber: null, tableName: null, waiterName: user.name, items: cart, total, amountPaid: totalPaid, change: res.data.change_due, cashier: user.name, paymentMethod: primaryMethod, splits, date: new Date().toLocaleString() });
       setCart([]); resetPayment(); fetchProducts();
     } catch { setMessage('❌ Sale failed!'); }
   };
