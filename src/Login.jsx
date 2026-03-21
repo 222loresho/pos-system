@@ -43,7 +43,7 @@ export default function Login({ onLogin }) {
             placeholder="Username"
             value={username}
             onChange={e => setUsername(e.target.value)}
-            autoCapitalize="none"
+            autoCapitalize="none" autoComplete="off"
           />
 
           <div style={{ marginBottom: '12px' }}>
@@ -57,7 +57,7 @@ export default function Login({ onLogin }) {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-              {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((k, i) => (
+              {[1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map((k, i) => (
                 <button key={i}
                   onClick={() => k !== '' && handlePinPress(String(k))}
                   style={{

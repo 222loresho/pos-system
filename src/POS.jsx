@@ -505,10 +505,11 @@ export default function POS({ user, onLogout }) {
             </div>
             {pinError && <div className="message message-error">{pinError}</div>}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', margin: '12px 0' }}>
-              {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((k, i) => (
+              {[1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map((k, i) => (
                 <button key={i} className="btn" style={{ background: k === '' ? 'transparent' : 'var(--card)', color: 'white', fontSize: '18px', padding: '12px', border: 'none' }}
                   onClick={() => {
                     if (k === '⌫') { setPinInput(p => p.slice(0,-1)); }
+                    else if (k === 'C') { setPinInput(''); }
                     else if (k !== '' && pinInput.length < 4) { 
                       const next = pinInput + k;
                       setPinInput(next);
