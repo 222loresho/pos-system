@@ -19,60 +19,29 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('userpin');
     setUser(null);
     setView('default');
   };
 
   if (!user) return <Login onLogin={handleLogin} />;
 
-  // Admin — can switch between admin panel and POS
+  // Admin
   if (user.role === 'admin' && view === 'pos') {
-    return (
-      <div>
-        <div style={{ background:'#0f3460', padding:'8px 16px', display:'flex', justifyContent:'space-between' }}>
-          <span style={{ color:'white' }}>👁️ POS View</span>
-          <button onClick={() => setView('default')} style={{ padding:'4px 12px', background:'#e94560', color:'white', border:'none', borderRadius:'6px', cursor:'pointer' }}>
-            ← Back to Admin
-          </button>
-        </div>
-        <POS user={user} onLogout={handleLogout} />
-      </div>
-    );
+    return <POS user={user} onLogout={handleLogout} onSwitchToBills={() => setView('default')} />;
   }
-
   if (user.role === 'admin') {
-    return (
-      <div>
-        <div style={{ background:'#0f3460', padding:'8px 16px', display:'flex', justifyContent:'flex-end' }}>
-          <button onClick={() => setView('pos')} style={{ padding:'4px 12px', background:'#4caf50', color:'white', border:'none', borderRadius:'6px', cursor:'pointer' }}>
-            🛒 Switch to POS
-          </button>
-        </div>
-        <Admin user={user} onLogout={handleLogout} />
-      </div>
-    );
+    return <Admin user={user} onLogout={handleLogout} onSwitchToPOS={() => setView('pos')} />;
   }
 
-  // Cashier — POS + Cashier Bills
+  // Cashier
   if (user.role === 'cashier') {
-    return (
-      <div>
-        <div style={{background:'#0f3460',padding:'8px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <span style={{color:'white',fontWeight:'bold'}}>👤 {user.name}</span>
-          <div style={{display:'flex',gap:'8px'}}>
-            <button onClick={() => setView('default')} style={{padding:'4px 12px',background:view==='default'||view==='pos'?'var(--accent)':'#1a1a2e',color:view==='default'||view==='pos'?'#0a0a0f':'white',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}}>
-              💰 Cashier Bills
-            </button>
-            <button onClick={handleLogout} style={{padding:'4px 12px',background:'#dc2626',color:'white',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}}>
-              Logout
-            </button>
-          </div>
-        </div>
-        {view === 'default' ? <CashierBills user={user} /> : <POS user={user} onLogout={handleLogout} showBills={true} />}
-      </div>
-    );
+    if (view === 'bills') {
+      return <CashierBills user={user} onLogout={handleLogout} onSwitchToPOS={() => setView('default')} />;
+    }
+    return <POS user={user} onLogout={handleLogout} showBills={true} onSwitchToBills={() => setView('bills')} />;
   }
 
-  // Waiter — POS only
+  // Waiter
   return <POS user={user} onLogout={handleLogout} />;
 }
