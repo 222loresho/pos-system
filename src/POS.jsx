@@ -183,6 +183,7 @@ export default function POS({ user, onLogout, showBills = false }) {
       <div style={{display:"flex",gap:"10px",padding:"10px 16px 0",borderBottom:"1px solid var(--card)",marginBottom:"8px"}}>
         <button onClick={() => setView("sales")} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="sales"?"var(--accent)":"var(--card)",color:"white"}}>{"🛒 Sales"}</button>
         <button onClick={() => {setView("tables");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="tables"?"var(--accent)":"var(--card)",color:"white"}}>{"🪑 Tables "}{pendingOrders.length > 0 ? "("+pendingOrders.length+")" : ""}</button>
+        <button onClick={() => {setView("bills");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="bills"?"var(--accent)":"var(--card)",color:"white"}}>{"💰 Bills"}{submittedOrders.length > 0 ? " ("+submittedOrders.length+")" : ""}</button>
       </div>
 
 
