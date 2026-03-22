@@ -51,7 +51,7 @@ export default function CashierBills({ user, onLogout, onSwitchToPOS }) {
         <h2>💰 Cashier Bills</h2>
         <div className="header-right">
           {user && <span className="header-user">👤 {user.name}</span>}
-          {onSwitchToPOS && <button className="btn btn-success btn-sm" onClick={onSwitchToPOS}>🛒 POS</button>}
+          {onSwitchToPOS && <button className="btn btn-sm" onClick={onSwitchToPOS} style={{background:"var(--accent)",color:"#0a0a0f",fontWeight:"bold"}}>🛒 POS</button>}
           <button className="btn btn-sm" style={{ background: 'var(--card)', color: 'white' }} onClick={fetchAll}>🔄</button>
           {onLogout && <button className="btn btn-primary btn-sm" onClick={onLogout}>Logout</button>}
         </div>
