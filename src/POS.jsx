@@ -436,9 +436,10 @@ export default function POS({ user, onLogout }) {
         Paid: KSh {splits.reduce((a,s) => a+(parseFloat(s.amount)||0),0)} / KSh {activeOrder.total}
       </div>
     </>
+            {message && message.startsWith("❌") && <div className="message message-error">{message}</div>}
             <div className="modal-actions">
-              <button className="btn btn-primary" onClick={completeOrder}>✅ Confirm</button>
-              <button className="btn btn-muted" onClick={() => { setShowPayModal(false); resetPayment(); }}>Cancel</button>
+              <button className="btn btn-primary" onClick={completeOrder}>💳 Submit Payment</button>
+              <button className="btn btn-muted" onClick={() => { setShowPayModal(false); resetPayment(); setMessage(""); }}>Cancel</button>
             </div>
           </div>
         </div>
