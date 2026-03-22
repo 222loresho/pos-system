@@ -53,27 +53,9 @@ export default function App() {
     );
   }
 
-  // Cashier — POS + Cashier Bills switcher
+  // Cashier — POS with bills tab built in
   if (user.role === 'cashier') {
-    return (
-      <div>
-        <div style={{ background:'#0f3460', padding:'8px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ color:'white', fontWeight:'bold' }}>👤 {user.name}</span>
-          <div style={{ display:'flex', gap:'8px' }}>
-            <button onClick={() => setView('pos')} style={{ padding:'4px 12px', background: view === 'pos' || view === 'default' ? '#4caf50' : '#1a1a2e', color:'white', border:'none', borderRadius:'6px', cursor:'pointer' }}>
-              🛒 POS
-            </button>
-            <button onClick={() => setView('bills')} style={{ padding:'4px 12px', background: view === 'bills' ? '#4caf50' : '#1a1a2e', color:'white', border:'none', borderRadius:'6px', cursor:'pointer' }}>
-              💰 Bills
-            </button>
-            <button onClick={handleLogout} style={{ padding:'4px 12px', background:'#e94560', color:'white', border:'none', borderRadius:'6px', cursor:'pointer' }}>
-              Logout
-            </button>
-          </div>
-        </div>
-        {view === 'bills' ? <CashierBills user={user} /> : <POS user={user} onLogout={handleLogout} />}
-      </div>
-    );
+    return <POS user={user} onLogout={handleLogout} showBills={true} />;
   }
 
   // Waiter — POS only

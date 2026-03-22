@@ -5,7 +5,7 @@ import api from './api';
 const toEAT = (iso) => new Date(iso);
 
 
-export default function POS({ user, onLogout }) {
+export default function POS({ user, onLogout, showBills = false }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
@@ -185,16 +185,7 @@ export default function POS({ user, onLogout }) {
         <button onClick={() => {setView("tables");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="tables"?"var(--accent)":"var(--card)",color:"white"}}>{"🪑 Tables "}{pendingOrders.length > 0 ? "("+pendingOrders.length+")" : ""}</button>
       </div>
 
-      {view === "tables" && (
-        <div style={{display:'flex',gap:'8px',padding:'12px 16px',borderBottom:'1px solid var(--border)',background:'var(--surface)'}}>
-          <button onClick={() => setTableTab('pending')} style={{flex:1,padding:'8px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'13px',background:tableTab==='pending'?'var(--accent)':'var(--card)',color:tableTab==='pending'?'#0a0a0f':'var(--muted)'}}>
-            🪑 Tables {pendingOrders.length > 0 ? `(${pendingOrders.length})` : ''}
-          </button>
-          <button onClick={() => setTableTab('submitted')} style={{flex:1,padding:'8px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'13px',background:tableTab==='submitted'?'var(--accent)':'var(--card)',color:tableTab==='submitted'?'#0a0a0f':'var(--muted)'}}>
-            📋 My Bills {submittedOrders.length > 0 ? `(${submittedOrders.length})` : ''}
-          </button>
-        </div>
-      )}
+
 
       {view === "tables" && tableTab === 'submitted' && (
         <div style={{padding:'14px'}}>
@@ -429,6 +420,38 @@ export default function POS({ user, onLogout }) {
           </div>
         </div>
       )}
+      {view === "bills" && (
+        <div style={{padding:'14px'}}>
+          <div className="section-title">💰 Submitted Bills</div>
+          {submittedOrders.length === 0 && (
+            <div className="card" style={{textAlign:'center',padding:'32px'}}>
+              <div style={{fontSize:'40px',marginBottom:'8px'}}>📭</div>
+              <div className="text-muted">No submitted bills yet</div>
+            </div>
+          )}
+          {submittedOrders.map(o => (
+            <div key={o.id} className="cleared-card" style={{border: o.status==='confirmed' ? '1px solid var(--green)' : '1px solid var(--accent)'}}>
+              <div className="cleared-header">
+                <div className="flex gap-8" style={{alignItems:'center'}}>
+                  <span className="text-accent text-bold">{o.order_number}</span>
+                  <span className="text-bold">{o.table_name}</span>
+                </div>
+                <span style={{background: o.status==='confirmed' ? 'var(--green-dim)' : 'var(--accent-glow)', color: o.status==='confirmed' ? 'var(--green)' : 'var(--accent)', padding:'3px 10px', borderRadius:'20px', fontSize:'11px', fontWeight:'bold'}}>
+                  {o.status === 'confirmed' ? '✅ Confirmed' : '⏳ Awaiting'}
+                </span>
+              </div>
+              <div className="text-muted text-sm mb-8">KSh {o.total}</div>
+              {o.status === 'confirmed' && o.confirmed_by && (
+                <div className="text-sm" style={{color:'var(--green)'}}>✅ Confirmed by {o.confirmed_by}</div>
+              )}
+              {o.rejection_note && (
+                <div className="text-sm" style={{color:'var(--red)'}}>❌ Rejected: {o.rejection_note}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Pay Modal */}
       {showPayModal && activeOrder && (
         <div className="modal-overlay">
