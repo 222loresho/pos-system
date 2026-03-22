@@ -40,7 +40,7 @@ export default function Login({ onLogin }) {
       <div style={{ width: '100%', maxWidth: '340px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ fontSize: '48px', marginBottom: '8px' }}>🛒</div>
-          <h1 style={{ color: 'var(--accent)', fontSize: '22px', margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>Javari</h1>
+          <h1 style={{ color: 'var(--accent)', fontSize: '22px', margin: 0,  }}>Javari</h1>
           <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 0' }}>Point of Sale</p>
         </div>
 
@@ -74,13 +74,13 @@ export default function Login({ onLogin }) {
                     padding: '14px',
                     fontSize: k === 'C' || k === '⌫' ? '16px' : '20px',
                     fontWeight: 'bold',
-                    background: k === 'C' ? 'rgba(220,38,38,0.2)' : k === '⌫' ? 'var(--card-hover)' : 'var(--card)',
-                    color: k === 'C' ? '#dc2626' : 'white',
-                    border: k === 'C' ? '1px solid rgba(220,38,38,0.3)' : '1px solid var(--border)',
+                    background: 'var(--card)',
+                    color: 'white',
+                    border: 'none',
                     borderRadius: '10px',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
-                    fontFamily: "'Outfit', sans-serif"
+                    
                   }}
                 >{k}</button>
               ))}
