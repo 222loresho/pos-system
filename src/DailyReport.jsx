@@ -24,7 +24,7 @@ export default function DailyReport() {
 
   const methodIcon = (m) => m === 'mpesa' ? '📱' : m === 'card' ? '💳' : '💵';
   const methodLabel = (m) => m === 'mpesa' ? 'Mpesa' : m === 'card' ? 'Card' : 'Cash';
-  const fmtTime = (iso) => { const d = new Date(iso); d.setHours(d.getHours() + 3); return d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', hour12: true }); };
+  const fmtTime = (iso) => new Date(iso).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   const printReport = () => {
     const win = window.open('', '_blank');

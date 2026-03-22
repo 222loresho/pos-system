@@ -2,11 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { printBill, printReceipt as doPrintReceipt } from './print';
 import api from './api';
 
-const toEAT = (iso) => {
-  const d = new Date(iso);
-  d.setHours(d.getHours() + 3);
-  return d;
-};
+const toEAT = (iso) => new Date(iso);
 
 
 export default function POS({ user, onLogout }) {

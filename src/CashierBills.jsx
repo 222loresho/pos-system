@@ -43,7 +43,7 @@ export default function CashierBills() {
   };
 
   const methodIcon = (m) => m === 'mpesa' ? '📱' : m === 'card' ? '💳' : m === 'billout' ? '📋' : m === 'split' ? '🔀' : '💵';
-  const fmtTime = (iso) => { if (!iso) return ''; const d = new Date(iso); d.setHours(d.getHours() + 3); return d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', hour12: true }); };
+  const fmtTime = (iso) => { if (!iso) return ''; return new Date(iso).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', hour12: true }); };
 
   return (
     <div className="page">
