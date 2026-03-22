@@ -198,7 +198,14 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
               <div className="text-muted">No submitted bills yet</div>
             </div>
           )}
-          {submittedOrders.map(o => (
+          {submittedOrders.filter(o => {
+            if (o.status === 'confirmed') {
+              const confirmedAt = new Date(o.confirmed_at);
+              const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+              return confirmedAt > tenMinsAgo;
+            }
+            return true;
+          }).map(o => (
             <div key={o.id} className="cleared-card" style={{border: o.status==='confirmed' ? '1px solid var(--green)' : '1px solid var(--accent)'}}>
               <div className="cleared-header">
                 <div className="flex gap-8" style={{alignItems:'center'}}>
@@ -432,7 +439,14 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
               <div className="text-muted">No submitted bills yet</div>
             </div>
           )}
-          {submittedOrders.map(o => (
+          {submittedOrders.filter(o => {
+            if (o.status === 'confirmed') {
+              const confirmedAt = new Date(o.confirmed_at);
+              const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+              return confirmedAt > tenMinsAgo;
+            }
+            return true;
+          }).map(o => (
             <div key={o.id} className="cleared-card" style={{border: o.status==='confirmed' ? '1px solid var(--green)' : '1px solid var(--accent)'}}>
               <div className="cleared-header">
                 <div className="flex gap-8" style={{alignItems:'center'}}>
