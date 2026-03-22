@@ -24,10 +24,22 @@ export default function POS({ user, onLogout }) {
   const [view, setView] = useState('sales');
   const [showTableEdit, setShowTableEdit] = useState(false);
   const [selectedWaiter, setSelectedWaiter] = useState('all');
+  const [submittedOrders, setSubmittedOrders] = useState([]);
+  const [tableTab, setTableTab] = useState('pending');
 
   const fetchProducts = () => api.get('/products/').then(res => setProducts(res.data));
   const fetchCategories = () => api.get('/categories/').then(res => setCategories(res.data));
-  const fetchOrders = () => api.get('/orders/').then(res => setPendingOrders(res.data));
+  const fetchOrders = () => {
+    api.get('/orders/').then(res => setPendingOrders(res.data));
+    api.get('/orders/submitted').then(res => setSubmittedOrders(res.data)).catch(() => {});
+    api.get('/orders/confirmed').then(res => {
+      setSubmittedOrders(prev => {
+        const ids = new Set(prev.map(o => o.id));
+        const confirmed = res.data.filter(o => !ids.has(o.id));
+        return [...prev, ...confirmed];
+      });
+    }).catch(() => {});
+  };
 
   useEffect(() => { fetchProducts(); fetchCategories(); fetchOrders(); }, []);
 
@@ -173,7 +185,55 @@ export default function POS({ user, onLogout }) {
         <button onClick={() => {setView("tables");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="tables"?"var(--accent)":"var(--card)",color:"white"}}>{"🪑 Tables "}{pendingOrders.length > 0 ? "("+pendingOrders.length+")" : ""}</button>
       </div>
 
-      {view === "tables" && pendingOrders.length > 0 && (
+      {view === "tables" && (
+        <div style={{display:'flex',gap:'8px',padding:'12px 16px',borderBottom:'1px solid var(--border)',background:'var(--surface)'}}>
+          <button onClick={() => setTableTab('pending')} style={{flex:1,padding:'8px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'13px',background:tableTab==='pending'?'var(--accent)':'var(--card)',color:tableTab==='pending'?'#0a0a0f':'var(--muted)'}}>
+            🪑 Tables {pendingOrders.length > 0 ? `(${pendingOrders.length})` : ''}
+          </button>
+          <button onClick={() => setTableTab('submitted')} style={{flex:1,padding:'8px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'13px',background:tableTab==='submitted'?'var(--accent)':'var(--card)',color:tableTab==='submitted'?'#0a0a0f':'var(--muted)'}}>
+            📋 My Bills {submittedOrders.length > 0 ? `(${submittedOrders.length})` : ''}
+          </button>
+        </div>
+      )}
+
+      {view === "tables" && tableTab === 'submitted' && (
+        <div style={{padding:'14px'}}>
+          {submittedOrders.length === 0 && (
+            <div className="card" style={{textAlign:'center',padding:'32px'}}>
+              <div style={{fontSize:'40px',marginBottom:'8px'}}>📭</div>
+              <div className="text-muted">No submitted bills yet</div>
+            </div>
+          )}
+          {submittedOrders.map(o => (
+            <div key={o.id} className="cleared-card" style={{border: o.status==='confirmed' ? '1px solid var(--green)' : '1px solid var(--accent)'}}>
+              <div className="cleared-header">
+                <div className="flex gap-8" style={{alignItems:'center'}}>
+                  <span className="text-accent text-bold">{o.order_number}</span>
+                  <span className="text-bold">{o.table_name}</span>
+                </div>
+                <span style={{background: o.status==='confirmed' ? 'var(--green-dim)' : 'var(--accent-glow)', color: o.status==='confirmed' ? 'var(--green)' : 'var(--accent)', padding:'3px 10px', borderRadius:'20px', fontSize:'11px', fontWeight:'bold'}}>
+                  {o.status === 'confirmed' ? '✅ Confirmed' : '⏳ Awaiting'}
+                </span>
+              </div>
+              <div className="text-muted text-sm mb-8">👤 {o.waiter_name} · KSh {o.total}</div>
+              {o.status === 'confirmed' && o.confirmed_by && (
+                <div className="text-sm" style={{color:'var(--green)'}}>✅ Confirmed by {o.confirmed_by}</div>
+              )}
+              {o.payment_details && o.payment_details.length > 0 && (
+                <div style={{marginTop:'8px',fontSize:'12px',color:'var(--muted)'}}>
+                  {o.payment_details.map((s,i) => (
+                    <span key={i} style={{marginRight:'8px'}}>
+                      {s.method === 'mpesa' ? '📱' : s.method === 'card' ? '💳' : s.method === 'billout' ? '📋' : '💵'} KSh {s.amount}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {view === "tables" && tableTab === 'pending' && pendingOrders.length > 0 && (
         <div className="pending-section">
           <div className="section-title">🕐 Awaiting Payment</div>
 
