@@ -23,6 +23,7 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
   const receiptRef = useRef();
   const [view, setView] = useState('sales');
   const [showTableEdit, setShowTableEdit] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
   const [selectedWaiter, setSelectedWaiter] = useState('all');
   const [submittedOrders, setSubmittedOrders] = useState([]);
   const [tableTab, setTableTab] = useState('pending');
@@ -518,7 +519,7 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
     </>
             {message && message.startsWith("❌") && <div className="message message-error">{message}</div>}
             <div className="modal-actions">
-              <button className="btn btn-primary" onClick={completeOrder}>💳 Submit Payment</button>
+              <button className="btn btn-primary" onClick={() => { setPendingSubmit(true); setPinInput(""); setPinError(""); setShowPinModal(true); }}>💳 Submit Payment</button>
               <button className="btn btn-muted" onClick={() => { setShowPayModal(false); resetPayment(); setMessage(""); }}>Cancel</button>
             </div>
           </div>
@@ -617,7 +618,7 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
                 >{k}</button>
               ))}
             </div>
-            <button className="btn btn-muted" onClick={() => setShowPinModal(false)}>Cancel</button>
+            <button className="btn btn-muted" onClick={() => { setShowPinModal(false); setPendingSubmit(false); }}>Cancel</button>
           </div>
         </div>
       )}
