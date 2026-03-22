@@ -7,25 +7,32 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!username || pin.length < 4) return setError('❌ Enter username and 4-digit PIN');
+  const doLogin = async (pinValue) => {
+    if (!username.trim()) { setError('❌ Enter your username first'); return; }
     setLoading(true);
+    setError('');
     try {
-      const res = await api.post('/auth/pin-login', { username, pin });
+      const res = await api.post('/auth/pin-login', { username: username.trim(), pin: pinValue });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      localStorage.setItem('userpin', pin);
+      localStorage.setItem('userpin', pinValue);
       onLogin(res.data.user);
     } catch (e) {
       setError(e.response?.data?.error || '❌ Login failed');
+      setPin('');
     } finally {
       setLoading(false);
     }
   };
 
   const handlePinPress = (k) => {
-    if (k === '⌫') { setPin(p => p.slice(0, -1)); return; }
-    if (pin.length < 4) setPin(p => p + k);
+    if (loading) return;
+    if (k === '⌫') { setPin(p => p.slice(0, -1)); setError(''); return; }
+    if (k === 'C') { setPin(''); setError(''); return; }
+    if (pin.length >= 4) return;
+    const next = pin + k;
+    setPin(next);
+    if (next.length === 4) doLogin(next);
   };
 
   return (
@@ -33,7 +40,7 @@ export default function Login({ onLogin }) {
       <div style={{ width: '100%', maxWidth: '340px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ fontSize: '48px', marginBottom: '8px' }}>🛒</div>
-          <h1 style={{ color: 'var(--accent)', fontSize: '22px', margin: 0 }}>Javari</h1>
+          <h1 style={{ color: 'var(--accent)', fontSize: '22px', margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>Javari</h1>
           <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 0' }}>Point of Sale</p>
         </div>
 
@@ -42,15 +49,17 @@ export default function Login({ onLogin }) {
             className="input"
             placeholder="Username"
             value={username}
-            onChange={e => setUsername(e.target.value)}
-            autoCapitalize="none" autoComplete="off"
+            onChange={e => { setUsername(e.target.value); setError(''); }}
+            autoCapitalize="none"
+            autoComplete="off"
+            autoCorrect="off"
           />
 
           <div style={{ marginBottom: '12px' }}>
             <div style={{ color: 'var(--muted)', fontSize: '12px', marginBottom: '8px' }}>Enter PIN</div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '16px' }}>
               {[0,1,2,3].map(i => (
-                <div key={i} style={{ width: '48px', height: '48px', border: `2px solid ${pin.length > i ? 'var(--accent)' : 'var(--card)'}`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', background: 'var(--surface)', transition: 'border-color 0.2s' }}>
+                <div key={i} style={{ width: '48px', height: '48px', border: `2px solid ${pin.length > i ? 'var(--accent)' : 'var(--border)'}`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', background: 'var(--surface)', transition: 'all 0.2s' }}>
                   {pin[i] ? '●' : ''}
                 </div>
               ))}
@@ -59,17 +68,19 @@ export default function Login({ onLogin }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
               {[1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map((k, i) => (
                 <button key={i}
-                  onClick={() => k !== '' && handlePinPress(String(k))}
+                  onClick={() => handlePinPress(String(k))}
+                  disabled={loading}
                   style={{
                     padding: '14px',
-                    fontSize: '20px',
+                    fontSize: k === 'C' || k === '⌫' ? '16px' : '20px',
                     fontWeight: 'bold',
-                    background: k === '' ? 'transparent' : 'var(--card)',
-                    color: 'white',
-                    border: 'none',
+                    background: k === 'C' ? 'rgba(220,38,38,0.2)' : k === '⌫' ? 'var(--card-hover)' : 'var(--card)',
+                    color: k === 'C' ? '#dc2626' : 'white',
+                    border: k === 'C' ? '1px solid rgba(220,38,38,0.3)' : '1px solid var(--border)',
                     borderRadius: '10px',
-                    cursor: k === '' ? 'default' : 'pointer',
-                    opacity: k === '' ? 0 : 1
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    fontFamily: "'Outfit', sans-serif"
                   }}
                 >{k}</button>
               ))}
@@ -77,15 +88,7 @@ export default function Login({ onLogin }) {
           </div>
 
           {error && <div className="message message-error">{error}</div>}
-
-          <button
-            className="btn btn-primary"
-            style={{ width: '100%', padding: '14px', fontSize: '16px', marginTop: '8px' }}
-            onClick={handleLogin}
-            disabled={loading || pin.length < 4 || !username}
-          >
-            {loading ? 'Logging in...' : '🔓 Login'}
-          </button>
+          {loading && <div className="message message-success">🔄 Logging in...</div>}
         </div>
       </div>
     </div>
