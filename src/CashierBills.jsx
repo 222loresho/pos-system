@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from './api';
 
-export default function CashierBills() {
+export default function CashierBills({ user, onLogout, onSwitchToPOS }) {
   const [submitted, setSubmitted] = useState([]);
   const [confirmed, setConfirmed] = useState([]);
   const [tab, setTab] = useState('submitted');
@@ -49,7 +49,12 @@ export default function CashierBills() {
     <div className="page">
       <div className="header">
         <h2>💰 Cashier Bills</h2>
-        <button className="btn btn-sm" style={{ background: 'var(--card)', color: 'white' }} onClick={fetchAll}>🔄 Refresh</button>
+        <div className="header-right">
+          {user && <span className="header-user">👤 {user.name}</span>}
+          {onSwitchToPOS && <button className="btn btn-success btn-sm" onClick={onSwitchToPOS}>🛒 POS</button>}
+          <button className="btn btn-sm" style={{ background: 'var(--card)', color: 'white' }} onClick={fetchAll}>🔄</button>
+          {onLogout && <button className="btn btn-primary btn-sm" onClick={onLogout}>Logout</button>}
+        </div>
       </div>
 
       <div className="tabs">

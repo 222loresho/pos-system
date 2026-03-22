@@ -5,7 +5,7 @@ import api from './api';
 const toEAT = (iso) => new Date(iso);
 
 
-export default function POS({ user, onLogout, showBills = false }) {
+export default function POS({ user, onLogout, showBills = false, onSwitchToBills }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
@@ -177,6 +177,7 @@ export default function POS({ user, onLogout, showBills = false }) {
         <h2>🛒 POS</h2>
         <div className="header-right">
           <span className="header-user">👤 {user.name}</span>
+          {onSwitchToBills && <button className="btn btn-sm" style={{background:'var(--card)',color:'white',border:'1px solid var(--border)'}} onClick={onSwitchToBills}>💰 Bills</button>}
           <button className="btn btn-primary btn-sm" onClick={onLogout}>Logout</button>
         </div>
       </div>
