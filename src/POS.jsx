@@ -177,8 +177,6 @@ export default function POS({ user, onLogout }) {
         <button onClick={() => {setView("tables");fetchOrders();}} style={{flex:1,padding:"10px",borderRadius:"8px",border:"none",cursor:"pointer",fontWeight:"bold",fontSize:"14px",background:view==="tables"?"var(--accent)":"var(--card)",color:"white"}}>{"🪑 Tables "}{pendingOrders.length > 0 ? "("+pendingOrders.length+")" : ""}</button>
       </div>
 
-      {message && <div className={`message ${message.startsWith('❌') ? 'message-error' : 'message-success'}`}>{message}</div>}
-
       {view === "tables" && pendingOrders.length > 0 && (
         <div className="pending-section">
           <div className="section-title">🕐 Awaiting Payment</div>
@@ -274,6 +272,7 @@ export default function POS({ user, onLogout }) {
             </div>
           ))}
 
+          {message && <div className={`message ${message.startsWith("❌") ? "message-error" : "message-success"}`} style={{margin:"8px 14px 0",borderRadius:"8px"}}>{message}</div>}
           <div className="cart-total-panel">
             <div className="total-row">
               <span>Total</span>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
   --bg: #0a0a0f;
@@ -12,7 +12,7 @@
   --green-dim: rgba(74, 222, 128, 0.15);
   --red: #dc2626;
   --red-dim: rgba(220, 38, 38, 0.15);
-  --text: #f0ede8;
+  --text: #f8f6f2;
   --muted: #6b6880;
   --border: rgba(26, 92, 46, 0.15);
   --border-strong: rgba(26, 92, 46, 0.35);
@@ -25,11 +25,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Outfit', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  font-size: 14px;
+  font-size: 15px;
   background-image: 
     radial-gradient(ellipse at 20% 50%, rgba(26, 92, 46, 0.05) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 20%, rgba(74, 222, 128, 0.02) 0%, transparent 50%);
@@ -62,7 +62,7 @@ body {
 }
 
 .header h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: clamp(16px, 4vw, 22px);
   color: var(--accent);
   letter-spacing: 0.5px;
@@ -97,7 +97,7 @@ body {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Outfit', sans-serif;
   white-space: nowrap;
   transition: all 0.2s;
   letter-spacing: 0.3px;
@@ -125,7 +125,7 @@ body {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Outfit', sans-serif;
   transition: all 0.2s;
   display: inline-flex;
   align-items: center;
@@ -165,7 +165,7 @@ body {
   border-radius: var(--radius-sm);
   color: var(--text);
   font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Outfit', sans-serif;
   margin-bottom: 10px;
   transition: all 0.2s;
   outline: none;
@@ -269,7 +269,7 @@ body {
 }
 .product-card:hover::before { opacity: 1; }
 .product-name { font-weight: 600; font-size: 13px; margin-bottom: 6px; color: var(--text); }
-.product-price { color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.product-price { color: var(--accent); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
 .product-stock { color: var(--muted); font-size: 11px; }
 
 /* CART */
@@ -294,7 +294,7 @@ body {
 }
 
 .section-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 15px;
   color: var(--accent);
   margin-bottom: 12px;
@@ -342,7 +342,7 @@ body {
   font-weight: 600;
 }
 .total-amount {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--accent);
   font-weight: 700;
   font-size: 20px;
@@ -387,7 +387,7 @@ body {
 .pending-btn {
   flex: 1; padding: 6px 4px; border: none; border-radius: var(--radius-sm);
   cursor: pointer; font-size: 11px; font-weight: 600;
-  font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  font-family: 'Outfit', sans-serif; transition: all 0.15s;
 }
 .pending-btn-bill { background: var(--card-hover); color: var(--text); border: 1px solid var(--border); }
 .pending-btn-bill:hover { border-color: var(--accent); color: var(--accent); }
@@ -424,7 +424,7 @@ body {
 }
 
 .modal h3, .modal-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 18px;
   color: var(--accent);
   margin-bottom: 16px;
@@ -444,7 +444,7 @@ body {
   flex: 1; min-width: 70px; padding: 8px 10px;
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   cursor: pointer; font-size: 12px; font-weight: 600;
-  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  font-family: 'Outfit', sans-serif; transition: all 0.2s;
 }
 .pay-method-btn.active {
   background: linear-gradient(135deg, var(--accent), var(--accent-dim));
@@ -459,7 +459,7 @@ body {
 
 /* RECEIPT */
 .receipt-header { text-align: center; padding-bottom: 10px; }
-.receipt-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1a1a1a; }
+.receipt-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #1a1a1a; }
 .receipt-sub { font-size: 12px; color: #666; margin-top: 2px; }
 .receipt-meta { display: flex; justify-content: space-between; font-size: 12px; color: #444; margin-bottom: 4px; }
 .receipt-item { display: flex; justify-content: space-between; font-size: 13px; color: #1a1a1a; margin-bottom: 6px; }
@@ -475,7 +475,7 @@ body {
   transition: all 0.2s;
 }
 .admin-item:hover { border-color: var(--border-strong); }
-.admin-item-info { font-weight: 600; font-size: 14px; color: var(--text); }
+.admin-item-info { font-weight: 600; font-size: 15px; color: var(--text); }
 .admin-item-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .admin-item-actions { display: flex; gap: 8px; }
 
