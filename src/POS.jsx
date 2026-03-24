@@ -30,16 +30,19 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
 
   const fetchProducts = () => api.get('/products/').then(res => setProducts(res.data));
   const fetchCategories = () => api.get('/categories/').then(res => setCategories(res.data));
-  const fetchOrders = () => {
-    api.get('/orders/').then(res => setPendingOrders(res.data));
-    api.get('/orders/submitted').then(res => setSubmittedOrders(res.data)).catch(() => {});
-    api.get('/orders/confirmed').then(res => {
-      setSubmittedOrders(prev => {
-        const ids = new Set(prev.map(o => o.id));
-        const confirmed = res.data.filter(o => !ids.has(o.id));
-        return [...prev, ...confirmed];
-      });
-    }).catch(() => {});
+  const fetchOrders = async () => {
+    try {
+      const [pending, submitted, confirmed] = await Promise.all([
+        api.get('/orders/'),
+        api.get('/orders/submitted').catch(() => ({ data: [] })),
+        api.get('/orders/confirmed').catch(() => ({ data: [] }))
+      ]);
+      setPendingOrders(pending.data);
+      const allSubmitted = [...submitted.data];
+      const submittedIds = new Set(submitted.data.map(o => o.id));
+      confirmed.data.forEach(o => { if (!submittedIds.has(o.id)) allSubmitted.push(o); });
+      setSubmittedOrders(allSubmitted);
+    } catch {}
   };
 
   useEffect(() => { fetchProducts(); fetchCategories(); fetchOrders(); }, []);
