@@ -148,6 +148,8 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
         splits: splits
       });
       setMessage('✅ Payment submitted! Waiting for cashier confirmation.');
+      // Immediately remove from tables list
+      setPendingOrders(prev => prev.filter(o => o.id !== activeOrder.id));
       resetPayment(); setActiveOrder(null); setShowPayModal(false); setCart([]); setShowTableEdit(false);
       fetchOrders(); fetchProducts();
     } catch { setMessage('❌ Submission failed!'); }
