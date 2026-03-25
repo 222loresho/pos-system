@@ -38,9 +38,14 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
         api.get('/orders/confirmed').catch(() => ({ data: [] }))
       ]);
       setPendingOrders(pending.data);
-      const allSubmitted = [...submitted.data];
-      const submittedIds = new Set(submitted.data.map(o => o.id));
-      confirmed.data.forEach(o => { if (!submittedIds.has(o.id)) allSubmitted.push(o); });
+      // Merge submitted and confirmed into one list, no duplicates
+      const seen = new Set();
+      const allSubmitted = [];
+      [...submitted.data, ...confirmed.data].forEach(o => {
+        if (!seen.has(o.id)) { seen.add(o.id); allSubmitted.push(o); }
+      });
+      // Sort by submitted_at desc
+      allSubmitted.sort((a, b) => new Date(b.submitted_at || b.created_at) - new Date(a.submitted_at || a.created_at));
       setSubmittedOrders(allSubmitted);
     } catch {}
   };
