@@ -39,8 +39,7 @@ export default function Login({ onLogin }) {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '16px' }}>
       <div style={{ width: '100%', maxWidth: '340px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <img src='/pos-system/logo.png' alt='Javari' style={{ width: '150px', height: '150px', objectFit: 'contain', marginBottom: '4px' }} />
-          <h1 style={{ color: 'var(--accent)', fontSize: '22px', margin: 0,  }}>Javari</h1>
+          <img src='/pos-system/logo.png' alt='Javari' style={{ width: '220px', height: '220px', objectFit: 'contain', marginBottom: '4px' }} />
 
         </div>
 
