@@ -37,7 +37,7 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
         api.get('/orders/submitted').catch(() => ({ data: [] })),
         api.get('/orders/confirmed').catch(() => ({ data: [] }))
       ]);
-      setPendingOrders(pending.data);
+      setPendingOrders(pending.data.filter(o => o.status === 'pending'));
       // Merge submitted and confirmed into one list, no duplicates
       const seen = new Set();
       const allSubmitted = [];
@@ -149,9 +149,12 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
       });
       setMessage('✅ Payment submitted! Waiting for cashier confirmation.');
       // Immediately remove from tables list
-      setPendingOrders(prev => prev.filter(o => o.id !== activeOrder.id));
+      const submittedId = activeOrder.id;
+      setPendingOrders(prev => prev.filter(o => o.id !== submittedId));
       resetPayment(); setActiveOrder(null); setShowPayModal(false); setCart([]); setShowTableEdit(false);
-      fetchOrders(); fetchProducts();
+      fetchProducts();
+      // Delay fetchOrders to avoid race condition
+      setTimeout(() => fetchOrders(), 1500);
     } catch { setMessage('❌ Submission failed!'); }
   };
 
@@ -255,17 +258,17 @@ export default function POS({ user, onLogout, showBills = false, onSwitchToBills
               style={{padding:'6px 14px',borderRadius:'20px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'12px',background:selectedWaiter==='all'?'var(--accent)':'var(--card)',color:'white',whiteSpace:'nowrap'}}>
               👥 All ({pendingOrders.length})
             </button>
-            {[...new Set(pendingOrders.map(o => o.waiter_name))].map(waiter => (
+            {[...new Set(pendingOrders.filter(o => o.status === 'pending').map(o => o.waiter_name))].map(waiter => (
               <button key={waiter}
                 onClick={() => setSelectedWaiter(waiter)}
                 style={{padding:'6px 14px',borderRadius:'20px',border:'none',cursor:'pointer',fontWeight:'bold',fontSize:'12px',background:selectedWaiter===waiter?'var(--accent)':'var(--card)',color:'white',whiteSpace:'nowrap'}}>
-                👤 {waiter} ({pendingOrders.filter(o => o.waiter_name === waiter).length})
+                👤 {waiter} ({pendingOrders.filter(o => o.status === 'pending' && o.waiter_name === waiter).length})
               </button>
             ))}
           </div>
 
           <div className="pending-grid">
-            {pendingOrders.filter(o => selectedWaiter === 'all' || o.waiter_name === selectedWaiter).map(o => (
+            {pendingOrders.filter(o => o.status === 'pending' && (selectedWaiter === 'all' || o.waiter_name === selectedWaiter)).map(o => (
               <div key={o.id} className={`pending-card ${activeOrder?.id === o.id ? 'active' : 'inactive'}`}>
                 <div onClick={() => loadOrder(o)} style={{ cursor:'pointer' }}>
                   <div className="flex-between mb-8">
