@@ -1,15 +1,23 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/pos-system/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Javari POS</title>
-    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js"></script>
-    <script type="module" crossorigin src="/pos-system/assets/index-BwpgOThd.js"></script>
-    <link rel="stylesheet" crossorigin href="/pos-system/assets/index-CeMpbf5K.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <title>POS System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>POS System</h1>
+
+    <div id="waiter-section">
+        <h2>Submitted Bills (Waiter)</h2>
+        <div id="submitted-bills"></div>
+    </div>
+
+    <div id="cashier-section">
+        <h2>Pending/Confirmed Bills (Cashier)</h2>
+        <div id="cashier-bills"></div>
+    </div>
+
+    <script src="js/fix.js"></script>
+</body>
 </html>
